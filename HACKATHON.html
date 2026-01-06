@@ -39,6 +39,25 @@
   }
   .legend-item{ display:flex; align-items:center; margin-bottom:8px; }
   .color-box{ width:12px; height:12px; margin-right:10px; border:1px solid #555; }
+
+  .elevation-controls{
+    position:absolute; top:20px; right:20px;
+    background:rgba(10,10,10,0.9);
+    border:1px solid #333;
+    padding:15px; width:200px; z-index:10;
+  }
+  .elevation-controls h3{
+    margin:0 0 10px 0; font-size:13px; text-transform:uppercase; letter-spacing:1px;
+    color:#888; border-bottom:1px solid #333; padding-bottom:8px;
+  }
+  .toggle-btn{
+    display:block; width:100%;
+    padding:10px; margin-bottom:8px;
+    background:transparent; border:1px solid #444;
+    color:#ccc; cursor:pointer; font-size:12px; text-align:center;
+  }
+  .toggle-btn:hover{ border-color:#fff; color:#fff; }
+  .toggle-btn.active{ background:#22c55e; color:#000; border-color:#22c55e; font-weight:bold; }
 </style>
 </head>
 
@@ -57,6 +76,16 @@
   <div class="legend-item"><span class="color-box" style="background:#facc15"></span>Residential (R-1)</div>
   <div class="legend-item"><span class="color-box" style="background:#a855f7"></span>Industrial (I-2)</div>
   <div class="legend-item"><span class="color-box" style="background:#ef4444"></span>Commercial (C-2)</div>
+</div>
+
+<div class="elevation-controls">
+  <h3>Flood Risk Analysis</h3>
+  <button class="toggle-btn" id="terrainBtn">Show Elevation Map</button>
+  <button class="toggle-btn" id="contourBtn">Show Contour Lines</button>
+  <div style="margin-top:12px; font-size:11px; color:#888; line-height:1.4;">
+    <strong style="color:#22c55e;">Green areas:</strong> Higher elevation<br>
+    <strong style="color:#ef4444;">Red/Dark areas:</strong> Lower elevation (flood-prone)
+  </div>
 </div>
 
 <script>
@@ -229,10 +258,32 @@
     container: 'map',
     style: 'mapbox://styles/mapbox/dark-v11',
     center: [123.95, 10.33],
-    zoom: 12.8
+    zoom: 12.8,
+    terrain: null // We'll toggle this on/off
   });
 
   map.on('load', () => {
+    // Add terrain source for elevation data
+    map.addSource('mapbox-dem', {
+      type: 'raster-dem',
+      url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      tileSize: 512,
+      maxzoom: 14
+    });
+
+    // Add hillshade layer (shows terrain relief)
+    map.addLayer({
+      id: 'hillshade',
+      type: 'hillshade',
+      source: 'mapbox-dem',
+      layout: { visibility: 'none' },
+      paint: {
+        'hillshade-exaggeration': 0.8,
+        'hillshade-shadow-color': '#000000',
+        'hillshade-highlight-color': '#ffffff'
+      }
+    }, 'zones-fill'); // Add before zones so zones stay on top
+
     map.addSource('zones', { type: 'geojson', data: currentData });
 
     map.addLayer({
@@ -335,6 +386,65 @@
     // Button wiring
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => setFilter(btn.dataset.filter, btn));
+    });
+
+    // Elevation toggle buttons
+    let terrainEnabled = false;
+    let contourEnabled = false;
+
+    document.getElementById('terrainBtn').addEventListener('click', function() {
+      terrainEnabled = !terrainEnabled;
+      
+      if (terrainEnabled) {
+        // Enable 3D terrain
+        map.setTerrain({ source: 'mapbox-dem', exaggeration: 2.5 });
+        map.setLayoutProperty('hillshade', 'visibility', 'visible');
+        this.classList.add('active');
+        this.textContent = 'Hide Elevation Map';
+      } else {
+        map.setTerrain(null);
+        map.setLayoutProperty('hillshade', 'visibility', 'none');
+        this.classList.remove('active');
+        this.textContent = 'Show Elevation Map';
+      }
+    });
+
+    document.getElementById('contourBtn').addEventListener('click', function() {
+      contourEnabled = !contourEnabled;
+      
+      if (contourEnabled) {
+        // Add contour lines if not already added
+        if (!map.getLayer('contours')) {
+          map.addLayer({
+            id: 'contours',
+            type: 'line',
+            source: {
+              type: 'vector',
+              url: 'mapbox://mapbox.mapbox-terrain-v2'
+            },
+            'source-layer': 'contour',
+            paint: {
+              'line-color': '#22c55e',
+              'line-width': [
+                'case',
+                ['==', ['%', ['get', 'ele'], 10], 0],
+                1.2,
+                0.6
+              ],
+              'line-opacity': 0.7
+            }
+          });
+        }
+        map.setLayoutProperty('contours', 'visibility', 'visible');
+        this.classList.add('active');
+        this.textContent = 'Hide Contour Lines';
+      } else {
+        if (map.getLayer('contours')) {
+          map.setLayoutProperty('contours', 'visibility', 'none');
+        }
+        this.classList.remove('active');
+        this.textContent = 'Show Contour Lines';
+      }
     });
   });
 
