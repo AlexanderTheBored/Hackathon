@@ -1,1796 +1,556 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <title>ZoneGuide – Mandaue Flood Risk Analysis</title>
-  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, sans-serif;
-      background: #000;
-      color: #fff;
-    }
-
-    #map {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 100%;
-    }
-
-    .controls {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: rgba(10, 10, 10, 0.95);
-      border: 1px solid #333;
-      padding: 20px;
-      width: 280px;
-      z-index: 10;
-      border-radius: 8px;
-    }
-
-    .controls h3 {
-      margin: 0 0 15px 0;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #888;
-      border-bottom: 1px solid #333;
-      padding-bottom: 10px;
-    }
-
-    .filter-btn {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 8px;
-      background: transparent;
-      border: 1px solid #444;
-      color: #ccc;
-      cursor: pointer;
-      font-size: 13px;
-      text-align: left;
-      text-transform: uppercase;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
-
-    .filter-btn:hover {
-      border-color: #fff;
-      color: #fff;
-    }
-
-    .filter-btn.active {
-      background: #fff;
-      color: #000;
-      border-color: #fff;
-      font-weight: bold;
-    }
-
-    .legend {
-      position: absolute;
-      bottom: 30px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.9);
-      border: 1px solid #333;
-      padding: 15px;
-      font-size: 12px;
-      border-radius: 8px;
-    }
-
-    .legend h4 {
-      margin: 0 0 10px 0;
-      font-size: 12px;
-      text-transform: uppercase;
-      color: #888;
-      border-bottom: 1px solid #333;
-      padding-bottom: 8px;
-    }
-
-    .legend-item {
-      display: flex;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .color-box {
-      width: 14px;
-      height: 14px;
-      margin-right: 10px;
-      border: 1px solid #555;
-      border-radius: 2px;
-    }
-
-    .elevation-controls {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(10, 10, 10, 0.95);
-      border: 1px solid #333;
-      padding: 15px;
-      width: 240px;
-      z-index: 10;
-      border-radius: 8px;
-    }
-
-    .elevation-controls h3 {
-      margin: 0 0 10px 0;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #888;
-      border-bottom: 1px solid #333;
-      padding-bottom: 8px;
-    }
-
-    .toggle-btn {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 8px;
-      background: transparent;
-      border: 1px solid #444;
-      color: #ccc;
-      cursor: pointer;
-      font-size: 12px;
-      text-align: center;
-      border-radius: 4px;
-      transition: all 0.2s;
-    }
-
-    .toggle-btn:hover {
-      border-color: #fff;
-      color: #fff;
-    }
-
-    .toggle-btn.active {
-      background: #ef4444;
-      color: #fff;
-      border-color: #ef4444;
-      font-weight: bold;
-    }
-
-    .search-box {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #ffffff;
-      border: none;
-      padding: 0;
-      width: 500px;
-      z-index: 1000;
-      border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 16px 20px;
-      background: #ffffff;
-      border: none;
-      color: #1f2937;
-      font-size: 16px;
-      border-radius: 10px;
-      outline: none;
-      font-family: system-ui, sans-serif;
-      box-shadow: none;
-    }
-
-    .search-input::placeholder {
-      color: #9ca3af;
-    }
-
-    .search-input:focus {
-      outline: 3px solid #3b82f6;
-      outline-offset: -3px;
-    }
-
-    .search-results {
-      background: #ffffff;
-      border-radius: 0 0 10px 10px;
-      max-height: 350px;
-      overflow-y: auto;
-      margin: 0;
-      padding: 0;
-    }
-
-    .search-result-item {
-      padding: 14px 20px;
-      background: #ffffff;
-      border: none;
-      border-top: 1px solid #e5e7eb;
-      margin: 0;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .search-result-item:first-child {
-      border-top: none;
-    }
-
-    .search-result-item:last-child {
-      border-radius: 0 0 10px 10px;
-    }
-
-    .search-result-item:hover {
-      background: #f3f4f6;
-    }
-
-    .search-result-title {
-      color: #1f2937;
-      font-weight: 600;
-      font-size: 15px;
-      margin: 0;
-      padding: 0;
-    }
-
-    .search-result-address {
-      color: #6b7280;
-      font-size: 13px;
-      margin-top: 4px;
-      padding: 0;
-    }
-
-    /* Chatbot Styles */
-    .chatbot-button {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-    }
-
-    .chatbot-button.hidden {
-      display: none;
-    }
-
-    .chatbot-button:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
-    }
-
-    .chatbot-button svg {
-      width: 30px;
-      height: 30px;
-      fill: white;
-    }
-
-    .chatbot-window {
-      position: fixed;
-      bottom: 10px;
-      left: 20px;
-      width: 320px;
-      height: auto;
-      max-height: calc(100vh - 100px);
-      background: rgba(15, 15, 15, 0.98);
-      border: 1px solid #333;
-      border-radius: 16px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-      z-index: 1001;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      backdrop-filter: blur(10px);
-    }
-
-    .chatbot-window.open {
-      display: flex;
-      animation: slideUp 0.3s ease;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .chatbot-header {
-      padding: 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .chatbot-header h3 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .chatbot-header .close-btn {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      padding: 0;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      transition: background 0.2s;
-    }
-
-    .chatbot-header .close-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .chatbot-messages {
-      flex: 0 1 auto;
-      height: 350px;
-      min-height: 0;
-      overflow-y: auto;
-      padding: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .chatbot-messages::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .chatbot-messages::-webkit-scrollbar-track {
-      background: #1a1a1a;
-    }
-
-    .chatbot-messages::-webkit-scrollbar-thumb {
-      background: #444;
-      border-radius: 3px;
-    }
-
-    .chat-message {
-      max-width: 80%;
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 14px;
-      line-height: 1.5;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .chat-message.user {
-      align-self: flex-end;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
-
-    .chat-message.ai {
-      align-self: flex-start;
-      background: #222;
-      color: #e5e5e5;
-      border: 1px solid #333;
-      border-bottom-left-radius: 4px;
-    }
-
-    .chat-message.system {
-      align-self: center;
-      background: #1a1a1a;
-      color: #888;
-      font-size: 12px;
-      font-style: italic;
-      border: 1px solid #2a2a2a;
-      max-width: 90%;
-      text-align: center;
-    }
-
-    .chatbot-input-area {
-      flex-shrink: 0;
-      padding: 12px;
-      background: #1a1a1a;
-      border-top: 1px solid #333;
-      display: flex;
-      gap: 8px;
-    }
-
-    .chatbot-input {
-      flex: 1;
-      padding: 10px 12px;
-      background: #222;
-      border: 1px solid #444;
-      border-radius: 8px;
-      color: white;
-      font-size: 13px;
-      outline: none;
-      font-family: system-ui, sans-serif;
-    }
-
-    .chatbot-input:focus {
-      border-color: #667eea;
-    }
-
-    .chatbot-input::placeholder {
-      color: #666;
-    }
-
-    .chatbot-send-btn {
-      padding: 10px 16px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      border-radius: 8px;
-      color: white;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .chatbot-send-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-
-    .chatbot-send-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .typing-indicator {
-      display: flex;
-      gap: 4px;
-      padding: 12px 16px;
-      background: #222;
-      border: 1px solid #333;
-      border-radius: 12px;
-      border-bottom-left-radius: 4px;
-      width: fit-content;
-    }
-
-    .typing-indicator span {
-      width: 8px;
-      height: 8px;
-      background: #667eea;
-      border-radius: 50%;
-      animation: typing 1.4s infinite;
-    }
-
-    .typing-indicator span:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .typing-indicator span:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-
-    @keyframes typing {
-
-      0%,
-      60%,
-      100% {
-        transform: translateY(0);
-        opacity: 0.7;
-      }
-
-      30% {
-        transform: translateY(-10px);
-        opacity: 1;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div id="map"></div>
-
-  <div class="search-box">
-    <input type="text" id="searchInput" class="search-input"
-      placeholder="Search for address, building, or place in Mandaue...">
-    <div id="searchResults" class="search-results"></div>
-  </div>
-
-  <div class="controls">
-    <h3>Project Filter</h3>
-    <button class="filter-btn active" data-filter="all">View All Zones</button>
-    <button class="filter-btn" data-filter="house">Residential Project</button>
-    <button class="filter-btn" data-filter="factory">Industrial Facility</button>
-    <button class="filter-btn" data-filter="mall">Commercial Complex</button>
-  </div>
-
-  <div class="legend">
-    <h4>Zoning Districts</h4>
-    <div class="legend-item"><span class="color-box" style="background:#facc15"></span>Residential (R-1)</div>
-    <div class="legend-item"><span class="color-box" style="background:#a855f7"></span>Industrial (I-2)</div>
-    <div class="legend-item"><span class="color-box" style="background:#ef4444"></span>Commercial (C-2)</div>
-
-    <h4 style="margin-top:15px;">Flood Risk Zones</h4>
-    <div class="legend-item"><span class="color-box" style="background:#b91c1c"></span>Critical (Roof-level)</div>
-    <div class="legend-item"><span class="color-box" style="background:#dc2626"></span>High Risk (Chest-deep)</div>
-    <div class="legend-item"><span class="color-box" style="background:#f59e0b"></span>Moderate (Knee-deep)</div>
-    <div class="legend-item"><span class="color-box" style="background:#fbbf24"></span>Low (Street flooding)</div>
-  </div>
-
-  <div class="elevation-controls">
-    <h3>Flood Risk Layers</h3>
-    <button class="toggle-btn" id="terrainBtn">Show 3D Terrain Map</button>
-    <button class="toggle-btn" id="buildingsBtn">Show 3D Buildings</button>
-    <button class="toggle-btn" id="floodBtn">Show Flood Risk Zones</button>
-    <button class="toggle-btn" id="riverBtn">Show Water Bodies</button>
-    <button class="toggle-btn" id="contourBtn">Show Elevation Lines</button>
-    <div style="margin-top:12px; font-size:11px; color:#888; line-height:1.5;">
-      <strong style="color:#3b82f6;">3D Terrain:</strong> Shows actual elevation with hillshading<br>
-      <strong style="color:#6b7280;">3D Buildings:</strong> Extrudes buildings to real heights<br><br>
-    </div>
-  </div>
-
-  <!-- Chatbot -->
-  <button class="chatbot-button" id="chatbotToggle">
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2 22l5.71-.97C9 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.38 0-2.68-.31-3.85-.85l-.27-.13-2.82.48.48-2.82-.13-.27C4.31 14.68 4 13.38 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8zm-3-7h2v2H9v-2zm4 0h2v2h-2v-2z" />
-    </svg>
-  </button>
-
-  <div class="chatbot-window" id="chatbotWindow">
-    <div class="chatbot-header">
-      <h3>Zone Bot</h3>
-      <button class="close-btn" id="chatbotClose">&times;</button>
-    </div>
-    <div class="chatbot-messages" id="chatbotMessages">
-      <div class="chat-message system">
-        Welcome! I can help you understand flood risks, zoning regulations, and map features. Ask me anything!
-      </div>
-    </div>
-    <div class="chatbot-input-area">
-      <input type="text" class="chatbot-input" id="chatbotInput"
-        placeholder="Ask about flood zones, zoning, or map features..." autocomplete="off">
-      <button class="chatbot-send-btn" id="chatbotSend">Send</button>
-    </div>
-  </div>
-
-  <script>
-    mapboxgl.accessToken =
-      'pk.eyJ1IjoiZmxhcmVpdW0iLCJhIjoiY21qaXF4eDRyMTQ5ZjNlcTF2c3Ntd3NzOSJ9.jb1Fbw5JUyvBJ2czkccBXA';
-
-    // Updated zones with realistic flood risk based on Butuanon River proximity
-    const zoningData = {
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature",
-          properties: {
-            name: "Cabancalan–Canduman Residential Area",
-            zone: "Residential (R-1)",
-            color: "#facc15",
-            allows_house: true,
-            allows_mall: false,
-            allows_factory: false,
-            notes: "Predominantly residential barangays with low-rise housing.",
-            floodRisk: "moderate"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.920, 10.360],
-              [123.930, 10.365],
-              [123.938, 10.362],
-              [123.945, 10.355],
-              [123.942, 10.345],
-              [123.935, 10.342],
-              [123.925, 10.345],
-              [123.918, 10.352],
-              [123.920, 10.360]
-            ]]
-          }
-        },
-        {
-          type: "Feature",
-          properties: {
-            name: "A.S. Fortuna – Banilad Commercial Corridor",
-            zone: "Commercial (C-2)",
-            color: "#ef4444",
-            allows_house: true,
-            allows_mall: true,
-            allows_factory: false,
-            notes: "Dense commercial corridor along A.S. Fortuna Street. Prone to flooding during heavy rains.",
-            floodRisk: "high"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.915, 10.348],
-              [123.928, 10.350],
-              [123.935, 10.345],
-              [123.930, 10.335],
-              [123.922, 10.332],
-              [123.912, 10.335],
-              [123.910, 10.342],
-              [123.915, 10.348]
-            ]]
-          }
-        },
-        {
-          type: "Feature",
-          properties: {
-            name: "Subangdaku Industrial Belt",
-            zone: "Industrial (I-2)",
-            color: "#a855f7",
-            allows_house: false,
-            allows_mall: true,
-            allows_factory: true,
-            notes: "Industrial zone in central-western Mandaue. High flood risk from Butuanon River overflow.",
-            floodRisk: "high"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.918, 10.330],
-              [123.933, 10.332],
-              [123.938, 10.325],
-              [123.936, 10.315],
-              [123.930, 10.310],
-              [123.920, 10.308],
-              [123.912, 10.312],
-              [123.910, 10.320],
-              [123.915, 10.328],
-              [123.918, 10.330]
-            ]]
-          }
+if (searchMarker) searchMarker.remove();
+              
+              searchMarker = new mapboxgl.Marker({ color: '#3b82f6' })
+                .setLngLat([lng, lat])
+                .addTo(map);
+              
+              map.flyTo({
+                center: [lng, lat],
+                zoom: 16,
+                duration: 1500
+              });
+              
+              searchInput.value = item.querySelector('.search-result-title').textContent;
+              searchResults.innerHTML = '';
+            });
+          });
+        } else {
+          searchResults.innerHTML = '<div style="padding:16px 20px; color:#6b7280; font-size:14px; text-align:center; background:#fff;">No results found in Mandaue</div>';
         }
-      ]
-    };
-
-    // Butuanon River path - CORRECTED to match actual geography visible in satellite/3D view
-    // The river actually runs MORE TO THE EAST than previously mapped
-    // TRUE SOURCE: Mountain areas of Malubog/Pulangbato → Talamban (Cebu City) → 
-    // flows into Mandaue through: Banilad → Cabancalan → Casuntingan → 
-    // Tingub → Maguikay → Tabok → Ibabao → Alang-alang → Paknaan → Umapad → Mactan Channel
-    const butuanonRiver = {
-      type: "Feature",
-      properties: { name: "Butuanon River - 23km from mountains to sea" },
-      geometry: {
-        type: "LineString",
-        coordinates: [
-          // TRUE UPSTREAM: Mountain area (Pulangbato area, Cebu City) - SHIFTED EAST
-          [123.900, 10.380],
-          [123.905, 10.377],
-          [123.910, 10.374],
-          // Talamban/Bacayan area (primary watershed)
-          [123.915, 10.371],
-          [123.920, 10.368],
-          [123.924, 10.365],
-          // Banilad border (Cebu City to Mandaue transition)
-          [123.928, 10.362],
-          [123.931, 10.359],
-          // MANDAUE CITY BEGINS - Banilad/Cabancalan area
-          [123.934, 10.356],
-          [123.937, 10.353],
-          // Casuntingan area
-          [123.939, 10.350],
-          [123.941, 10.347],
-          // Tingub area
-          [123.943, 10.344],
-          [123.944, 10.341],
-          // Maguikay area
-          [123.945, 10.338],
-          [123.946, 10.335],
-          // Tabok area
-          [123.946, 10.332],
-          [123.946, 10.329],
-          // Ibabao-Estancia (major flood area)
-          [123.945, 10.326],
-          [123.944, 10.323],
-          // Alang-alang
-          [123.943, 10.320],
-          [123.942, 10.317],
-          // Paknaan (Cambogaong Bridge, Butuanon Bridge at 10.34405, 123.95884)
-          [123.941, 10.314],
-          [123.940, 10.311],
-          // Umapad area
-          [123.939, 10.308],
-          [123.938, 10.305],
-          // Drains to Mactan Channel
-          [123.937, 10.302],
-          [123.936, 10.299],
-          [123.935, 10.296]
-        ]
+      } catch (error) {
+        console.error('Search error:', error);
+        searchResults.innerHTML = '<div style="padding:16px 20px; color:#ef4444; font-size:14px; text-align:center; background:#fff;">Search failed. Try again.</div>';
       }
-    };
-
-    // REALISTIC flood risk zones based on ACTUAL documented flooding incidents
-    // Data sources: MCDRRMO reports, 2022-2025 flood events, official barangay records
-    const floodRiskZones = {
-      type: "FeatureCollection",
-      features: [
-        // CRITICAL RISK: 6 major overflow points (roof-level flooding documented)
-        // Casuntingan, Maguikay, Paknaan, Umapad - worst affected barangays
-        {
-          type: "Feature",
-          properties: {
-            risk: "critical",
-            name: "CRITICAL: Paknaan-Umapad Corridor",
-            details: "Roof-level flooding documented. 190+ families evacuated. 3-meter easement violations.",
-            depth: "2nd floor to roof level (6-9 feet)",
-            frequency: "Every typhoon + heavy rain"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.938, 10.305],
-              [123.944, 10.315],
-              [123.947, 10.315],
-              [123.941, 10.305],
-              [123.938, 10.305]
-            ]]
-          }
-        },
-        {
-          type: "Feature",
-          properties: {
-            risk: "critical",
-            name: "CRITICAL: Ibabao-Estancia Overflow Zone",
-            details: "Major overflow point. Water too deep for rescue boots. Thousands evacuated.",
-            depth: "Chest to 2nd floor (5-8 feet)",
-            frequency: "Severe during typhoons"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.941, 10.318],
-              [123.947, 10.328],
-              [123.950, 10.328],
-              [123.944, 10.318],
-              [123.941, 10.318]
-            ]]
-          }
-        },
-        {
-          type: "Feature",
-          properties: {
-            risk: "critical",
-            name: "CRITICAL: Casuntingan Riprap Area",
-            details: "Damaged riprap. 675 houses destroyed in 2022. Worst flood in 30 years.",
-            depth: "Waist to 2nd floor (4-8 feet)",
-            frequency: "Recurring annually"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.936, 10.342],
-              [123.942, 10.352],
-              [123.945, 10.352],
-              [123.939, 10.342],
-              [123.936, 10.342]
-            ]]
-          }
-        },
-        {
-          type: "Feature",
-          properties: {
-            risk: "critical",
-            name: "CRITICAL: Maguikay-Tabok Footbridge",
-            details: "Official overflow point #3. Bridge area submerges regularly.",
-            depth: "Waist to chest deep (3-5 feet)",
-            frequency: "Every heavy rainfall"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.940, 10.332],
-              [123.946, 10.342],
-              [123.949, 10.342],
-              [123.943, 10.332],
-              [123.940, 10.332]
-            ]]
-          }
-        },
-        // HIGH RISK: Adjacent to critical zones (chest-deep flooding)
-        {
-          type: "Feature",
-          properties: {
-            risk: "high",
-            name: "HIGH RISK: Alang-Alang Buffer",
-            details: "Adjacent to overflow areas. Sitio Pulang Bukid affected.",
-            depth: "Knee to waist deep (2-4 feet)",
-            frequency: "During sustained rainfall"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.935, 10.308],
-              [123.938, 10.305],
-              [123.941, 10.305],
-              [123.947, 10.315],
-              [123.950, 10.315],
-              [123.950, 10.318],
-              [123.938, 10.318],
-              [123.935, 10.308]
-            ]]
-          }
-        },
-        {
-          type: "Feature",
-          properties: {
-            risk: "high",
-            name: "HIGH RISK: Tingub Extended Area",
-            details: "Frequently affected. Part of 27 flood-prone barangays.",
-            depth: "Ankle to knee deep (1-3 feet)",
-            frequency: "Moderate to heavy rain"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.937, 10.338],
-              [123.940, 10.332],
-              [123.943, 10.332],
-              [123.949, 10.342],
-              [123.952, 10.342],
-              [123.952, 10.345],
-              [123.940, 10.345],
-              [123.937, 10.338]
-            ]]
-          }
-        },
-        // MODERATE RISK: Secondary flooding zones (knee-deep during extreme events)
-        {
-          type: "Feature",
-          properties: {
-            risk: "moderate",
-            name: "MODERATE: Banilad-A.S. Fortuna Area",
-            details: "M. Cuenco Ave drainage issues. Waist-deep flooding reported at Rolling Hills area.",
-            depth: "Street flooding to knee-deep (6 inches - 2 feet)",
-            frequency: "Heavy downpours"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.930, 10.350],
-              [123.936, 10.360],
-              [123.945, 10.360],
-              [123.945, 10.350],
-              [123.930, 10.350]
-            ]]
-          }
-        },
-        {
-          type: "Feature",
-          properties: {
-            risk: "moderate",
-            name: "MODERATE: Cabancalan-Canduman Zone",
-            details: "Talamban mini dam helps mitigate. Some runoff during extreme weather.",
-            depth: "Street flooding (3-12 inches)",
-            frequency: "Extreme weather events only"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.925, 10.352],
-              [123.930, 10.365],
-              [123.940, 10.365],
-              [123.935, 10.352],
-              [123.925, 10.352]
-            ]]
-          }
-        },
-        // LOW RISK: Historically safe areas (minimal flooding)
-        {
-          type: "Feature",
-          properties: {
-            risk: "low",
-            name: "LOW RISK: Elevated Eastern Areas",
-            details: "Higher ground. Not typically affected except during unprecedented rainfall.",
-            depth: "Minor street flooding only (<6 inches)",
-            frequency: "Rare"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.950, 10.295],
-              [123.955, 10.295],
-              [123.955, 10.365],
-              [123.950, 10.365],
-              [123.950, 10.295]
-            ]]
-          }
-        },
-        {
-          type: "Feature",
-          properties: {
-            risk: "low",
-            name: "LOW RISK: Western Periphery",
-            details: "Further from river overflow zones. Generally safe.",
-            depth: "Minimal (<3 inches)",
-            frequency: "Very rare"
-          },
-          geometry: {
-            type: "Polygon",
-            coordinates: [[
-              [123.920, 10.295],
-              [123.935, 10.295],
-              [123.935, 10.365],
-              [123.920, 10.365],
-              [123.920, 10.295]
-            ]]
-          }
-        }
-      ]
-    };
-
-    let currentData = JSON.parse(JSON.stringify(zoningData));
-
-    function computeBoundsFromGeoJSON(fc) {
-      const bounds = new mapboxgl.LngLatBounds();
-      fc.features.forEach(f => {
-        const coords = f.geometry.coordinates[0];
-        coords.forEach(([lng, lat]) => bounds.extend([lng, lat]));
-      });
-      return bounds;
-    }
-
-    const map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center: [123.93, 10.33],
-      zoom: 12.5
     });
 
-    map.on('load', () => {
-      // Search functionality
-      const searchInput = document.getElementById('searchInput');
-      const searchResults = document.getElementById('searchResults');
-      let searchMarker = null;
+    // - Jericho: Cursor interaction for zones
+    map.on('mouseenter', 'zones-fill', () => map.getCanvas().style.cursor = 'pointer');
+    map.on('mouseleave', 'zones-fill', () => map.getCanvas().style.cursor = '');
 
-      searchInput.addEventListener('input', async (e) => {
-        const query = e.target.value.trim();
+    // - Jericho: Fit to zones on initial load
+    map.fitBounds(computeBoundsFromGeoJSON(currentData), { padding: 80, duration: 0 });
 
-        if (query.length < 3) {
-          searchResults.innerHTML = '';
-          return;
-        }
+    // - Jericho: Enhanced popup for zone clicks
+    map.on('click', 'zones-fill', (e) => {
+      const f = e.features && e.features[0];
+      if (!f) return;
 
-        try {
-          // Mapbox Geocoding API - search for buildings, POIs, addresses
-          const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
-            `proximity=123.93,10.33&` + // Prioritize results near Mandaue
-            `bbox=123.85,10.25,124.00,10.40&` + // Expanded bbox for better results
-            `types=poi,address,place&` + // Include POIs (buildings), addresses, places
-            `limit=8&` +
-            `country=PH&` + // Limit to Philippines
-            `access_token=${mapboxgl.accessToken}`
-          );
+      const p = f.properties || {};
+      const name = p.name ?? "Unnamed Zone";
+      const zone = p.zone ?? "Unknown Zone";
+      const notes = p.notes ?? "";
+      const floodRisk = p.floodRisk ?? "unknown";
+      
+      const riskColor = floodRisk === 'critical' ? '#7f1d1d' :
+                        floodRisk === 'high' ? '#dc2626' : 
+                        floodRisk === 'moderate' ? '#f97316' : '#22c55e';
+      const riskText = floodRisk === 'critical' ? 'CRITICAL RISK' :
+                       floodRisk === 'high' ? 'HIGH RISK' : 
+                       floodRisk === 'moderate' ? 'MODERATE RISK' : 'LOW RISK';
 
-          const data = await response.json();
-
-          if (data.features && data.features.length > 0) {
-            searchResults.innerHTML = data.features.map(feature => {
-              // Get more detailed info
-              const name = feature.text || feature.place_name;
-              const category = feature.properties?.category || '';
-              const address = feature.place_name;
-
-              return `
-            <div class="search-result-item" data-lng="${feature.center[0]}" data-lat="${feature.center[1]}">
-              <div class="search-result-title">${name}${category ? ' · ' + category : ''}</div>
-              <div class="search-result-address">${address}</div>
-            </div>
-          `;
-            }).join('');
-
-            // Add click handlers to results
-            document.querySelectorAll('.search-result-item').forEach(item => {
-              item.addEventListener('click', () => {
-                const lng = parseFloat(item.dataset.lng);
-                const lat = parseFloat(item.dataset.lat);
-
-                // Remove old marker if exists
-                if (searchMarker) searchMarker.remove();
-
-                // Add new marker
-                searchMarker = new mapboxgl.Marker({ color: '#3b82f6' })
-                  .setLngLat([lng, lat])
-                  .addTo(map);
-
-                // Fly to location
-                map.flyTo({
-                  center: [lng, lat],
-                  zoom: 16,
-                  duration: 1500
-                });
-
-                // Clear search
-                searchInput.value = item.querySelector('.search-result-title').textContent;
-                searchResults.innerHTML = '';
-              });
-            });
-          } else {
-            searchResults.innerHTML = '<div style="padding:16px 20px; color:#6b7280; font-size:14px; text-align:center; background:#fff;">No results found in Mandaue</div>';
-          }
-        } catch (error) {
-          console.error('Search error:', error);
-          searchResults.innerHTML = '<div style="padding:16px 20px; color:#ef4444; font-size:14px; text-align:center; background:#fff;">Search failed. Try again.</div>';
-        }
-      });
-
-      // Add terrain source for 3D elevation
-      map.addSource('mapbox-dem', {
-        type: 'raster-dem',
-        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        tileSize: 512,
-        maxzoom: 14
-      });
-
-      // Add hillshade layer for terrain visualization
-      map.addLayer({
-        id: 'hillshade',
-        type: 'hillshade',
-        source: 'mapbox-dem',
-        layout: { visibility: 'none' },
-        paint: {
-          'hillshade-exaggeration': 1.5,
-          'hillshade-shadow-color': '#000000',
-          'hillshade-highlight-color': '#ffffff',
-          'hillshade-illumination-direction': 315
-        }
-      }, 'flood-risk-fill');
-
-      // Add 3D Buildings layer (uses Mapbox's building data)
-      map.addLayer({
-        id: '3d-buildings',
-        source: 'composite',
-        'source-layer': 'building',
-        filter: ['==', 'extrude', 'true'],
-        type: 'fill-extrusion',
-        minzoom: 14,
-        layout: { visibility: 'none' },
-        paint: {
-          'fill-extrusion-color': [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false],
-            '#38bdf8',
-            '#6b7280'
-          ],
-          'fill-extrusion-height': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            14, 0,
-            14.5, ['get', 'height']
-          ],
-          'fill-extrusion-base': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            14, 0,
-            14.5, ['get', 'min_height']
-          ],
-          'fill-extrusion-opacity': 0.7
-        }
-      });
-
-      // Add REAL waterway data from Mapbox's built-in layers
-      // This uses Mapbox's water layer which includes rivers, streams, canals
-      map.addLayer({
-        id: 'mapbox-waterways',
-        type: 'line',
-        source: 'composite',
-        'source-layer': 'waterway',
-        layout: { visibility: 'none' },
-        paint: {
-          'line-color': '#1e40af',
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            11, ['case', ['==', ['get', 'class'], 'river'], 4, 2],
-            13, ['case', ['==', ['get', 'class'], 'river'], 10, 4],
-            15, ['case', ['==', ['get', 'class'], 'river'], 18, 8],
-            17, ['case', ['==', ['get', 'class'], 'river'], 36, 14]
-          ],
-          'line-opacity': 0.85
-        }
-      });
-
-      // Add glow effect for waterways
-      map.addLayer({
-        id: 'mapbox-waterways-glow',
-        type: 'line',
-        source: 'composite',
-        'source-layer': 'waterway',
-        layout: { visibility: 'none' },
-        paint: {
-          'line-color': '#3b82f6',
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            11, ['case', ['==', ['get', 'class'], 'river'], 10, 6],
-            13, ['case', ['==', ['get', 'class'], 'river'], 24, 12],
-            15, ['case', ['==', ['get', 'class'], 'river'], 44, 20],
-            17, ['case', ['==', ['get', 'class'], 'river'], 68, 32]
-          ],
-          'line-opacity': 0.25,
-          'line-blur': 8
-        }
-      }, 'mapbox-waterways');
-
-      // Also add water bodies (lakes, ponds)
-      map.addLayer({
-        id: 'mapbox-water-bodies',
-        type: 'fill',
-        source: 'composite',
-        'source-layer': 'water',
-        layout: { visibility: 'none' },
-        paint: {
-          'fill-color': '#1e40af',
-          'fill-opacity': 0.5
-        }
-      });
-
-      // Add flood risk zones layer (initially hidden)
-      map.addSource('flood-risk', {
-        type: 'geojson',
-        data: floodRiskZones
-      });
-
-      map.addLayer({
-        id: 'flood-risk-fill',
-        type: 'fill',
-        source: 'flood-risk',
-        layout: { visibility: 'none' },
-        paint: {
-          'fill-color': [
-            'match',
-            ['get', 'risk'],
-            'critical', '#b91c1c',
-            'high', '#dc2626',
-            'moderate', '#f59e0b',
-            'low', '#fbbf24',
-            '#888888'
-          ],
-          'fill-opacity': 0.5
-        }
-      });
-
-      map.addLayer({
-        id: 'flood-risk-outline',
-        type: 'line',
-        source: 'flood-risk',
-        layout: { visibility: 'none' },
-        paint: {
-          'line-color': [
-            'match',
-            ['get', 'risk'],
-            'critical', '#b91c1c',
-            'high', '#dc2626',
-            'moderate', '#f59e0b',
-            'low', '#fbbf24',
-            '#888888'
-          ],
-          'line-width': 1.5,
-          'line-opacity': 0.7
-        }
-      });
-
-      // Add Butuanon River layer (initially hidden)
-      map.addSource('butuanon-river', {
-        type: 'geojson',
-        data: butuanonRiver
-      });
-
-      map.addLayer({
-        id: 'river-line',
-        type: 'line',
-        source: 'butuanon-river',
-        layout: { visibility: 'none' },
-        paint: {
-          'line-color': '#1e40af',
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            11, 3,    // At zoom 11, river is 3px (smaller view)
-            13, 8,    // At zoom 13, river is 8px (medium view)
-            15, 16,   // At zoom 15, river is 16px (closer view - shows ~15-20m width)
-            17, 32    // At zoom 17, river is 32px (very close - shows full width)
-          ],
-          'line-opacity': 0.85
-        }
-      });
-
-      map.addLayer({
-        id: 'river-glow',
-        type: 'line',
-        source: 'butuanon-river',
-        layout: { visibility: 'none' },
-        paint: {
-          'line-color': '#3b82f6',
-          'line-width': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            11, 8,
-            13, 20,
-            15, 40,
-            17, 60
-          ],
-          'line-opacity': 0.25,
-          'line-blur': 8
-        }
-      });
-
-      // Add zoning layers
-      map.addSource('zones', { type: 'geojson', data: currentData });
-
-      map.addLayer({
-        id: 'zones-fill',
-        type: 'fill',
-        source: 'zones',
-        paint: {
-          'fill-color': ['get', 'color'],
-          'fill-opacity': 0.5
-        }
-      });
-
-      map.addLayer({
-        id: 'zones-outline',
-        type: 'line',
-        source: 'zones',
-        paint: {
-          'line-color': '#ffffff',
-          'line-width': 2,
-          'line-opacity': 0.6
-        }
-      });
-
-      // Cursor UX
-      map.on('mouseenter', 'zones-fill', () => map.getCanvas().style.cursor = 'pointer');
-      map.on('mouseleave', 'zones-fill', () => map.getCanvas().style.cursor = '');
-
-      // Fit to zones on load
-      map.fitBounds(computeBoundsFromGeoJSON(currentData), { padding: 80, duration: 0 });
-
-      // Click popup for zones
-      map.on('click', 'zones-fill', (e) => {
-        const f = e.features && e.features[0];
-        if (!f) return;
-
-        const p = f.properties || {};
-        const name = p.name ?? "Unnamed Zone";
-        const zone = p.zone ?? "Unknown Zone";
-        const notes = p.notes ?? "";
-        const floodRisk = p.floodRisk ?? "unknown";
-
-        const riskColor = floodRisk === 'high' ? '#dc2626' :
-          floodRisk === 'moderate' ? '#f59e0b' : '#22c55e';
-        const riskText = floodRisk === 'high' ? 'HIGH RISK' :
-          floodRisk === 'moderate' ? 'MODERATE RISK' : 'LOW RISK';
-
-        new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
-          .setLngLat(e.lngLat)
-          .setHTML(`
+      new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
+        .setLngLat(e.lngLat)
+        .setHTML(`
           <div style="color:#111; font-family:system-ui,sans-serif; font-size:13px;">
-            <strong>${name}</strong><br>
+            <strong style="font-size:15px;">${name}</strong><br>
             <span style="color:#666;">Zone: ${zone}</span><br>
-            <div style="margin:8px 0; padding:6px; background:${riskColor}; color:#fff; border-radius:4px; text-align:center; font-weight:bold; font-size:11px;">
+            <div style="margin:8px 0; padding:8px; background:${riskColor}; color:#fff; border-radius:6px; text-align:center; font-weight:bold; font-size:11px;">
               FLOOD RISK: ${riskText}
             </div>
             <small style="color:#666;">${notes}</small>
+            ${p.population ? `<br><small style="color:#888;">Population: ${p.population}</small>` : ''}
+            ${p.businesses ? `<br><small style="color:#888;">Businesses: ${p.businesses}</small>` : ''}
+            ${p.facilities ? `<br><small style="color:#888;">Facilities: ${p.facilities}</small>` : ''}
           </div>
         `)
-          .addTo(map);
-      });
+        .addTo(map);
+    });
 
-      // Click popup for flood zones
-      map.on('click', 'flood-risk-fill', (e) => {
-        const f = e.features && e.features[0];
-        if (!f) return;
+    // - Jericho: Enhanced popup for flood zone clicks
+    map.on('click', 'flood-risk-fill', (e) => {
+      const f = e.features && e.features[0];
+      if (!f) return;
 
-        const risk = f.properties.risk;
-        const riskColor = risk === 'critical' ? '#b91c1c' :
-          risk === 'high' ? '#dc2626' :
-            risk === 'moderate' ? '#f59e0b' : '#fbbf24';
-        const riskLabel = risk === 'critical' ? 'CRITICAL' :
-          risk === 'high' ? 'HIGH' :
-            risk === 'moderate' ? 'MODERATE' : 'LOW';
+      const risk = f.properties.risk;
+      const riskColor = risk === 'critical' ? '#7f1d1d' :
+                        risk === 'high' ? '#dc2626' : 
+                        risk === 'moderate' ? '#f97316' : '#fbbf24';
+      const riskLabel = risk === 'critical' ? 'CRITICAL' :
+                        risk === 'high' ? 'HIGH' :
+                        risk === 'moderate' ? 'MODERATE' : 'LOW';
 
-        new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
-          .setLngLat(e.lngLat)
-          .setHTML(`
-          <div style="color:#111; font-family:system-ui,sans-serif; font-size:13px; max-width:280px;">
-            <div style="background:${riskColor}; color:#fff; padding:10px; border-radius:4px; text-align:center; font-weight:bold; margin-bottom:10px; font-size:12px;">
-              ⚠️ ${riskLabel} FLOOD RISK
+      new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <div style="color:#111; font-family:system-ui,sans-serif; font-size:13px; max-width:300px;">
+            <div style="background:${riskColor}; color:#fff; padding:12px; border-radius:8px; text-align:center; font-weight:bold; margin-bottom:12px; font-size:13px;">
+              ${riskLabel} FLOOD RISK ZONE
             </div>
             <strong style="color:#333; font-size:14px;">${f.properties.name}</strong><br>
-            <div style="margin:8px 0; padding:8px; background:#f3f4f6; border-radius:4px;">
-              <small style="color:#666; line-height:1.5;"><strong>Details:</strong> ${f.properties.details}</small>
+            <div style="margin:10px 0; padding:10px; background:#f3f4f6; border-radius:6px;">
+              <small style="color:#666; line-height:1.6;"><strong>Details:</strong> ${f.properties.details}</small>
             </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
-              <div style="padding:6px; background:#fef2f2; border-radius:4px;">
-                <small style="color:#991b1b; font-weight:600; display:block; font-size:10px;">TYPICAL DEPTH</small>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+              <div style="padding:8px; background:#fef2f2; border-radius:6px;">
+                <small style="color:#991b1b; font-weight:600; display:block; font-size:10px; text-transform:uppercase;">Typical Depth</small>
                 <small style="color:#7f1d1d; font-size:11px;">${f.properties.depth || 'Variable'}</small>
               </div>
-              <div style="padding:6px; background:#fef2f2; border-radius:4px;">
-                <small style="color:#991b1b; font-weight:600; display:block; font-size:10px;">FREQUENCY</small>
+              <div style="padding:8px; background:#fef2f2; border-radius:6px;">
+                <small style="color:#991b1b; font-weight:600; display:block; font-size:10px; text-transform:uppercase;">Frequency</small>
                 <small style="color:#7f1d1d; font-size:11px;">${f.properties.frequency || 'Unknown'}</small>
               </div>
             </div>
-            ${risk === 'critical' || risk === 'high' ?
-              '<div style="margin-top:10px; padding:8px; background:#fef2f2; border-left:3px solid #dc2626; font-size:11px; line-height:1.4;"><strong style="color:#dc2626;">⚠️ EVACUATION RECOMMENDED:</strong> This area experiences life-threatening flooding. Residents should evacuate during typhoon warnings.</div>' :
-              risk === 'moderate' ?
-                '<div style="margin-top:10px; padding:8px; background:#fffbeb; border-left:3px solid #f59e0b; font-size:11px; line-height:1.4;"><strong style="color:#d97706;">⚠️ CAUTION:</strong> Monitor weather conditions. Be prepared to evacuate if flooding worsens.</div>' :
-                '<div style="margin-top:10px; padding:8px; background:#f0fdf4; border-left:3px solid #22c55e; font-size:11px; line-height:1.4;"><strong style="color:#16a34a;">ℹ️ LOW RISK:</strong> Generally safe, but stay alert during extreme weather.</div>'
+            ${f.properties.lastIncident ? 
+              `<div style="margin-top:10px; padding:8px; background:#fffbeb; border-radius:6px;">
+                <small style="color:#92400e; font-size:11px;"><strong>Last Incident:</strong> ${f.properties.lastIncident}</small>
+              </div>` : ''
             }
           </div>
         `)
-          .addTo(map);
-      });
+        .addTo(map);
+    });
 
-      map.on('mouseenter', 'flood-risk-fill', () => map.getCanvas().style.cursor = 'pointer');
-      map.on('mouseleave', 'flood-risk-fill', () => map.getCanvas().style.cursor = '');
+    map.on('mouseenter', 'flood-risk-fill', () => map.getCanvas().style.cursor = 'pointer');
+    map.on('mouseleave', 'flood-risk-fill', () => map.getCanvas().style.cursor = '');
 
-      // Button wiring for zone filters
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => setFilter(btn.dataset.filter, btn));
-      });
+    // - Jericho: Filter buttons for zone types
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => setFilter(btn.dataset.filter, btn));
+    });
 
-      // Toggle buttons for flood analysis
-      let terrainEnabled = false;
-      let buildingsEnabled = false;
-      let floodVisible = false;
-      let riverVisible = false;
-      let contourVisible = false;
-
-      document.getElementById('terrainBtn').addEventListener('click', function () {
-        terrainEnabled = !terrainEnabled;
-
-        if (terrainEnabled) {
-          // Enable 3D terrain with exaggeration
-          map.setTerrain({ source: 'mapbox-dem', exaggeration: 3 });
-          map.setLayoutProperty('hillshade', 'visibility', 'visible');
-
-          // Adjust pitch for better 3D view
+    // - Jericho: Toggle button handlers with proper state management
+    document.getElementById('terrainBtn').addEventListener('click', function() {
+      layerStates.terrain = !layerStates.terrain;
+      
+      if (layerStates.terrain) {
+        map.setTerrain({ source: 'mapbox-dem', exaggeration: 3 });
+        map.setLayoutProperty('hillshade', 'visibility', 'visible');
+        
+        if (!layerStates.buildings) {
           map.easeTo({ pitch: 60, duration: 1000 });
-
-          this.classList.add('active');
-          this.textContent = 'Hide 3D Terrain Map';
-        } else {
-          // Disable terrain and return to flat view
-          map.setTerrain(null);
-          map.setLayoutProperty('hillshade', 'visibility', 'none');
-          map.easeTo({ pitch: 0, duration: 1000 });
-
-          this.classList.remove('active');
-          this.textContent = 'Show 3D Terrain Map';
         }
-      });
+        
+        this.classList.add('active');
+      } else {
+        map.setTerrain(null);
+        map.setLayoutProperty('hillshade', 'visibility', 'none');
+        
+        if (!layerStates.buildings) {
+          map.easeTo({ pitch: 0, duration: 1000 });
+        }
+        
+        this.classList.remove('active');
+      }
+    });
 
-      document.getElementById('buildingsBtn').addEventListener('click', function () {
-        buildingsEnabled = !buildingsEnabled;
-
-        if (buildingsEnabled) {
-          // Show 3D buildings and tilt camera
-          map.setLayoutProperty('3d-buildings', 'visibility', 'visible');
-          map.easeTo({
-            pitch: 60,
-            bearing: -17.6,
-            duration: 1000
-          });
-
-          this.classList.add('active');
-          this.textContent = 'Hide 3D Buildings';
-        } else {
-          // Hide buildings and return to top-down view
-          map.setLayoutProperty('3d-buildings', 'visibility', 'none');
-          map.easeTo({
+    document.getElementById('buildingsBtn').addEventListener('click', function() {
+      layerStates.buildings = !layerStates.buildings;
+      
+      if (layerStates.buildings) {
+        map.setLayoutProperty('3d-buildings', 'visibility', 'visible');
+        
+        map.easeTo({ 
+          pitch: 60, 
+          bearing: -17.6,
+          duration: 1000 
+        });
+        
+        this.classList.add('active');
+      } else {
+        map.setLayoutProperty('3d-buildings', 'visibility', 'none');
+        
+        if (!layerStates.terrain) {
+          map.easeTo({ 
             pitch: 0,
             bearing: 0,
-            duration: 1000
+            duration: 1000 
           });
-
-          this.classList.remove('active');
-          this.textContent = 'Show 3D Buildings';
         }
-      });
-
-      document.getElementById('floodBtn').addEventListener('click', function () {
-        floodVisible = !floodVisible;
-        const visibility = floodVisible ? 'visible' : 'none';
-
-        map.setLayoutProperty('flood-risk-fill', 'visibility', visibility);
-        map.setLayoutProperty('flood-risk-outline', 'visibility', visibility);
-
-        this.classList.toggle('active');
-        this.textContent = floodVisible ? 'Hide Flood Risk Zones' : 'Show Flood Risk Zones';
-      });
-
-      document.getElementById('riverBtn').addEventListener('click', function () {
-        riverVisible = !riverVisible;
-        const visibility = riverVisible ? 'visible' : 'none';
-
-        // Toggle all water layers from Mapbox
-        map.setLayoutProperty('mapbox-waterways', 'visibility', visibility);
-        map.setLayoutProperty('mapbox-waterways-glow', 'visibility', visibility);
-        map.setLayoutProperty('mapbox-water-bodies', 'visibility', visibility);
-
-        this.classList.toggle('active');
-        this.textContent = riverVisible ? 'Hide Water Bodies' : 'Show Water Bodies';
-      });
-
-      document.getElementById('contourBtn').addEventListener('click', function () {
-        contourVisible = !contourVisible;
-
-        if (contourVisible) {
-          if (!map.getLayer('contours')) {
-            map.addLayer({
-              id: 'contours',
-              type: 'line',
-              source: {
-                type: 'vector',
-                url: 'mapbox://mapbox.mapbox-terrain-v2'
-              },
-              'source-layer': 'contour',
-              paint: {
-                'line-color': '#22c55e',
-                'line-width': [
-                  'case',
-                  ['==', ['%', ['get', 'ele'], 10], 0],
-                  1.2,
-                  0.6
-                ],
-                'line-opacity': 0.5
-              }
-            });
-          }
-          map.setLayoutProperty('contours', 'visibility', 'visible');
-          this.classList.add('active');
-          this.textContent = 'Hide Elevation Lines';
-        } else {
-          if (map.getLayer('contours')) {
-            map.setLayoutProperty('contours', 'visibility', 'none');
-          }
-          this.classList.remove('active');
-          this.textContent = 'Show Elevation Lines';
-        }
-      });
+        
+        this.classList.remove('active');
+      }
     });
 
-    function setFilter(type, btn) {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+    document.getElementById('floodBtn').addEventListener('click', function() {
+      layerStates.flood = !layerStates.flood;
+      const visibility = layerStates.flood ? 'visible' : 'none';
+      
+      map.setLayoutProperty('flood-risk-fill', 'visibility', visibility);
+      map.setLayoutProperty('flood-risk-outline', 'visibility', visibility);
+      
+      this.classList.toggle('active');
+    });
 
-      if (type === 'all') {
-        map.setFilter('zones-fill', null);
-        map.setFilter('zones-outline', null);
-        map.fitBounds(computeBoundsFromGeoJSON(currentData), { padding: 80, duration: 450 });
-        return;
+    document.getElementById('riverBtn').addEventListener('click', function() {
+      layerStates.river = !layerStates.river;
+      const visibility = layerStates.river ? 'visible' : 'none';
+      
+      map.setLayoutProperty('river-glow', 'visibility', visibility);
+      map.setLayoutProperty('river-line', 'visibility', visibility);
+      map.setLayoutProperty('mapbox-waterways', 'visibility', visibility);
+      map.setLayoutProperty('mapbox-waterways-glow', 'visibility', visibility);
+      map.setLayoutProperty('mapbox-water-bodies', 'visibility', visibility);
+      
+      this.classList.toggle('active');
+    });
+
+    document.getElementById('contourBtn').addEventListener('click', function() {
+      layerStates.contour = !layerStates.contour;
+      
+      if (layerStates.contour) {
+        if (!map.getLayer('contours')) {
+          map.addLayer({
+            id: 'contours',
+            type: 'line',
+            source: {
+              type: 'vector',
+              url: 'mapbox://mapbox.mapbox-terrain-v2'
+            },
+            'source-layer': 'contour',
+            paint: {
+              'line-color': '#22c55e',
+              'line-width': [
+                'case',
+                ['==', ['%', ['get', 'ele'], 10], 0],
+                1.2,
+                0.6
+              ],
+              'line-opacity': 0.5
+            }
+          });
+        }
+        map.setLayoutProperty('contours', 'visibility', 'visible');
+        this.classList.add('active');
+      } else {
+        if (map.getLayer('contours')) {
+          map.setLayoutProperty('contours', 'visibility', 'none');
+        }
+        this.classList.remove('active');
       }
+    });
+  });
 
-      const key = `allows_${type}`;
-      const filterExpr = ['==', ['get', key], true];
+  // - Jericho: Filter function with proper bounds fitting
+  function setFilter(type, btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 
-      map.setFilter('zones-fill', filterExpr);
-      map.setFilter('zones-outline', filterExpr);
-
-      const filtered = {
-        type: "FeatureCollection",
-        features: currentData.features.filter(f => f.properties && f.properties[key] === true)
-      };
-
-      if (filtered.features.length) {
-        map.fitBounds(computeBoundsFromGeoJSON(filtered), { padding: 100, duration: 450 });
-      }
+    if (type === 'all') {
+      map.setFilter('zones-fill', null);
+      map.setFilter('zones-outline', null);
+      map.fitBounds(computeBoundsFromGeoJSON(currentData), { padding: 80, duration: 450 });
+      return;
     }
-  </script>
 
-  <!-- ==================== CHATBOT FUNCTIONALITY ==================== -->
+    const key = `allows_${type}`;
+    const filterExpr = ['==', ['get', key], true];
 
-  <script>
-    const chatbotToggle = document.getElementById('chatbotToggle');
-    const chatbotWindow = document.getElementById('chatbotWindow');
-    const chatbotClose = document.getElementById('chatbotClose');
-    const chatbotMessages = document.getElementById('chatbotMessages');
-    const chatbotInput = document.getElementById('chatbotInput');
-    const chatbotSend = document.getElementById('chatbotSend');
+    map.setFilter('zones-fill', filterExpr);
+    map.setFilter('zones-outline', filterExpr);
 
-    // ==================== MAP CONTROL FUNCTIONS ====================
-    // These functions allow the AI to interact with the map
-
-    const mapControls = {
-      toggleFloodLayer: (show) => {
-        const visibility = show ? 'visible' : 'none';
-        map.setLayoutProperty('flood-risk-fill', 'visibility', visibility);
-        map.setLayoutProperty('flood-risk-outline', 'visibility', visibility);
-        document.getElementById('floodBtn').classList.toggle('active', show);
-        document.getElementById('floodBtn').textContent = show ? 'Hide Flood Risk Zones' : 'Show Flood Risk Zones';
-        return `Flood risk zones ${show ? 'shown' : 'hidden'}`;
-      },
-
-      toggleTerrainLayer: (show) => {
-        if (show) {
-          map.setTerrain({ source: 'mapbox-dem', exaggeration: 3 });
-          map.setLayoutProperty('hillshade', 'visibility', 'visible');
-          map.easeTo({ pitch: 60, duration: 1000 });
-          document.getElementById('terrainBtn').classList.add('active');
-          document.getElementById('terrainBtn').textContent = 'Hide 3D Terrain Map';
-        } else {
-          map.setTerrain(null);
-          map.setLayoutProperty('hillshade', 'visibility', 'none');
-          map.easeTo({ pitch: 0, duration: 1000 });
-          document.getElementById('terrainBtn').classList.remove('active');
-          document.getElementById('terrainBtn').textContent = 'Show 3D Terrain Map';
-        }
-        return `3D terrain ${show ? 'enabled' : 'disabled'}`;
-      },
-
-      toggleBuildingsLayer: (show) => {
-        if (show) {
-          map.setLayoutProperty('3d-buildings', 'visibility', 'visible');
-          map.easeTo({ pitch: 60, bearing: -17.6, duration: 1000 });
-          document.getElementById('buildingsBtn').classList.add('active');
-          document.getElementById('buildingsBtn').textContent = 'Hide 3D Buildings';
-        } else {
-          map.setLayoutProperty('3d-buildings', 'visibility', 'none');
-          map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
-          document.getElementById('buildingsBtn').classList.remove('active');
-          document.getElementById('buildingsBtn').textContent = 'Show 3D Buildings';
-        }
-        return `3D buildings ${show ? 'shown' : 'hidden'}`;
-      },
-
-      toggleWaterLayer: (show) => {
-        const visibility = show ? 'visible' : 'none';
-        map.setLayoutProperty('mapbox-waterways', 'visibility', visibility);
-        map.setLayoutProperty('mapbox-waterways-glow', 'visibility', visibility);
-        map.setLayoutProperty('mapbox-water-bodies', 'visibility', visibility);
-        document.getElementById('riverBtn').classList.toggle('active', show);
-        document.getElementById('riverBtn').textContent = show ? 'Hide Water Bodies' : 'Show Water Bodies';
-        return `Water bodies ${show ? 'shown' : 'hidden'}`;
-      },
-
-      zoomToArea: (area) => {
-        const locations = {
-          paknaan: { center: [123.940, 10.310], zoom: 15 },
-          umapad: { center: [123.938, 10.306], zoom: 15 },
-          ibabao: { center: [123.944, 10.323], zoom: 15 },
-          casuntingan: { center: [123.939, 10.347], zoom: 15 },
-          maguikay: { center: [123.943, 10.337], zoom: 15 },
-          tabok: { center: [123.946, 10.330], zoom: 15 },
-          banilad: { center: [123.928, 10.355], zoom: 15 },
-          subangdaku: { center: [123.925, 10.320], zoom: 15 },
-          cabancalan: { center: [123.930, 10.358], zoom: 15 },
-          canduman: { center: [123.938, 10.358], zoom: 15 },
-          'butuanon-river': { center: [123.940, 10.330], zoom: 13 }
-        };
-
-        const location = locations[area.toLowerCase()];
-        if (location) {
-          map.flyTo({ center: location.center, zoom: location.zoom, duration: 2000 });
-          return `Zoomed to ${area}`;
-        }
-        return `Area ${area} not found`;
-      },
-
-      showAllLayers: () => {
-        mapControls.toggleFloodLayer(true);
-        mapControls.toggleWaterLayer(true);
-        return 'All visualization layers enabled';
-      }
+    const filtered = {
+      type: "FeatureCollection",
+      features: currentData.features.filter(f => f.properties && f.properties[key] === true)
     };
 
-    let conversationHistory = [];
-    let groqApiKey = localStorage.getItem('groqApiKey') || '';
+    if (filtered.features.length) {
+      map.fitBounds(computeBoundsFromGeoJSON(filtered), { padding: 100, duration: 450 });
+    }
+  }
 
-    // Toggle chatbot window
-    chatbotToggle.addEventListener('click', () => {
-      chatbotWindow.classList.toggle('open');
-      if (chatbotWindow.classList.contains('open')) {
-        chatbotToggle.classList.add('hidden'); // Hide button when window opens
-        chatbotInput.focus();
-        // Check for API key on first open
-        if (!groqApiKey) {
-          setTimeout(() => {
-            addSystemMessage('To use the AI assistant, you need a Groq API key. Get one free at https://console.groq.com/');
-            setTimeout(() => {
-              const key = prompt('Please enter your Groq API key:');
-              if (key && key.trim()) {
-                groqApiKey = key.trim();
-                localStorage.setItem('groqApiKey', groqApiKey);
-                addSystemMessage('API key saved! You can now ask me questions.');
-              }
-            }, 500);
-          }, 300);
+  // ------------------ Compass UI ------------------
+  const compassBearingEl = document.getElementById('compassBearing');
+  const compassNorthEl = document.getElementById('compassNorth');
+
+  function getCardinalDirectionSimple(bearing) {
+    const directions = ['N','NE','E','SE','S','SW','W','NW'];
+    const index = Math.round(bearing / 45) % 8;
+    return directions[index];
+  }
+
+  function updateCompass() {
+    const bearing = ((Math.round(map.getBearing()) % 360) + 360) % 360;
+    if (compassBearingEl) compassBearingEl.textContent = `${bearing}°`;
+    if (compassNorthEl) compassNorthEl.textContent = getCardinalDirectionSimple(bearing);
+  }
+
+  map.on('rotate', updateCompass);
+  map.on('move', updateCompass);
+  updateCompass();
+
+  // ==================== AI CHATBOT FUNCTIONALITY ====================
+  const chatbotToggle = document.getElementById('chatbotToggle');
+  const chatbotWindow = document.getElementById('chatbotWindow');
+  const chatbotClose = document.getElementById('chatbotClose');
+  const chatbotMessages = document.getElementById('chatbotMessages');
+  const chatbotInput = document.getElementById('chatbotInput');
+  const chatbotSend = document.getElementById('chatbotSend');
+
+  // - Jericho: Map control functions
+  const mapControls = {
+    toggleFloodLayer: (show) => {
+      layerStates.flood = show;
+      const visibility = show ? 'visible' : 'none';
+      map.setLayoutProperty('flood-risk-fill', 'visibility', visibility);
+      map.setLayoutProperty('flood-risk-outline', 'visibility', visibility);
+      document.getElementById('floodBtn').classList.toggle('active', show);
+      return `Flood risk zones ${show ? 'shown' : 'hidden'}`;
+    },
+
+    toggleTerrainLayer: (show) => {
+      layerStates.terrain = show;
+      if (show) {
+        map.setTerrain({ source: 'mapbox-dem', exaggeration: 3 });
+        map.setLayoutProperty('hillshade', 'visibility', 'visible');
+        if (!layerStates.buildings) {
+          map.easeTo({ pitch: 60, duration: 1000 });
         }
+        document.getElementById('terrainBtn').classList.add('active');
       } else {
-        chatbotToggle.classList.remove('hidden'); // Show button when window closes
-      }
-    });
-
-    chatbotClose.addEventListener('click', () => {
-      chatbotWindow.classList.remove('open');
-      chatbotToggle.classList.remove('hidden'); // Show button when closing via X button
-    });
-
-    // Send message on button click
-    chatbotSend.addEventListener('click', sendMessage);
-
-    // Send message on Enter key
-    chatbotInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
-
-    function addMessage(content, type) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `chat-message ${type}`;
-      messageDiv.textContent = content;
-      chatbotMessages.appendChild(messageDiv);
-      chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-    }
-
-    function addSystemMessage(content) {
-      addMessage(content, 'system');
-    }
-
-    function showTypingIndicator() {
-      const typingDiv = document.createElement('div');
-      typingDiv.className = 'typing-indicator';
-      typingDiv.id = 'typingIndicator';
-      typingDiv.innerHTML = '<span></span><span></span><span></span>';
-      chatbotMessages.appendChild(typingDiv);
-      chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-    }
-
-    function hideTypingIndicator() {
-      const typingDiv = document.getElementById('typingIndicator');
-      if (typingDiv) typingDiv.remove();
-    }
-
-    async function sendMessage() {
-      const message = chatbotInput.value.trim();
-      if (!message) return;
-
-      if (!groqApiKey) {
-        addSystemMessage('Please set your Groq API key first.');
-        const key = prompt('Enter your Groq API key:');
-        if (key && key.trim()) {
-          groqApiKey = key.trim();
-          localStorage.setItem('groqApiKey', groqApiKey);
-          addSystemMessage('API key saved! Please send your message again.');
+        map.setTerrain(null);
+        map.setLayoutProperty('hillshade', 'visibility', 'none');
+        if (!layerStates.buildings) {
+          map.easeTo({ pitch: 0, duration: 1000 });
         }
-        return;
+        document.getElementById('terrainBtn').classList.remove('active');
       }
+      return `3D terrain ${show ? 'enabled' : 'disabled'}`;
+    },
 
-      // Add user message
-      addMessage(message, 'user');
-      chatbotInput.value = '';
-      chatbotSend.disabled = true;
+    toggleBuildingsLayer: (show) => {
+      layerStates.buildings = show;
+      if (show) {
+        map.setLayoutProperty('3d-buildings', 'visibility', 'visible');
+        map.easeTo({ pitch: 60, bearing: -17.6, duration: 1000 });
+        document.getElementById('buildingsBtn').classList.add('active');
+      } else {
+        map.setLayoutProperty('3d-buildings', 'visibility', 'none');
+        if (!layerStates.terrain) {
+          map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+        }
+        document.getElementById('buildingsBtn').classList.remove('active');
+      }
+      return `3D buildings ${show ? 'shown' : 'hidden'}`;
+    },
 
-      // Show typing indicator
-      showTypingIndicator();
+    toggleWaterLayer: (show) => {
+      layerStates.river = show;
+      const visibility = show ? 'visible' : 'none';
+      map.setLayoutProperty('river-glow', 'visibility', visibility);
+      map.setLayoutProperty('river-line', 'visibility', visibility);
+      map.setLayoutProperty('mapbox-waterways', 'visibility', visibility);
+      map.setLayoutProperty('mapbox-waterways-glow', 'visibility', visibility);
+      map.setLayoutProperty('mapbox-water-bodies', 'visibility', visibility);
+      document.getElementById('riverBtn').classList.toggle('active', show);
+      return `Water bodies ${show ? 'shown' : 'hidden'}`;
+    },
 
-      try {
-        // Define available functions for the AI
-        const tools = [
-          {
-            type: "function",
-            function: {
-              name: "toggle_flood_layer",
-              description: "Show or hide flood risk zones on the map",
-              parameters: {
-                type: "object",
-                properties: {
-                  show: { type: "boolean", description: "true to show, false to hide" }
-                },
-                required: ["show"]
-              }
+    zoomToArea: (area) => {
+      const locations = {
+        paknaan: { center: [123.940, 10.310], zoom: 15 },
+        umapad: { center: [123.938, 10.306], zoom: 15 },
+        ibabao: { center: [123.944, 10.323], zoom: 15 },
+        estancia: { center: [123.945, 10.326], zoom: 15 },
+        casuntingan: { center: [123.939, 10.347], zoom: 15 },
+        maguikay: { center: [123.943, 10.337], zoom: 15 },
+        tabok: { center: [123.946, 10.330], zoom: 15 },
+        banilad: { center: [123.928, 10.355], zoom: 15 },
+        subangdaku: { center: [123.925, 10.320], zoom: 15 },
+        tingub: { center: [123.943, 10.341], zoom: 15 },
+        cabancalan: { center: [123.930, 10.358], zoom: 15 },
+        canduman: { center: [123.938, 10.358], zoom: 15 },
+        'alang-alang': { center: [123.942, 10.317], zoom: 15 },
+        'butuanon-river': { center: [123.940, 10.330], zoom: 13 },
+        'as-fortuna': { center: [123.922, 10.340], zoom: 15 }
+      };
+
+      const location = locations[area.toLowerCase()];
+      if (location) {
+        map.flyTo({ center: location.center, zoom: location.zoom, duration: 2000 });
+        return `Zoomed to ${area}`;
+      }
+      return `Area ${area} not found`;
+    },
+
+    showAllLayers: () => {
+      mapControls.toggleFloodLayer(true);
+      mapControls.toggleWaterLayer(true);
+      return 'All visualization layers enabled';
+    }
+  };
+
+  let conversationHistory = [];
+  let groqApiKey = localStorage.getItem('groqApiKey') || '';
+
+  chatbotToggle.addEventListener('click', () => {
+    chatbotWindow.classList.toggle('open');
+    if (chatbotWindow.classList.contains('open')) {
+      chatbotToggle.classList.add('hidden');
+      chatbotInput.focus();
+      if (!groqApiKey) {
+        setTimeout(() => {
+          addSystemMessage('To use the AI assistant, you need a Groq API key. Get one free at https://console.groq.com/');
+          setTimeout(() => {
+            const key = prompt('Please enter your Groq API key:');
+            if (key && key.trim()) {
+              groqApiKey = key.trim();
+              localStorage.setItem('groqApiKey', groqApiKey);
+              addSystemMessage('API key saved! You can now ask me questions.');
             }
-          },
-          {
-            type: "function",
-            function: {
-              name: "toggle_terrain",
-              description: "Enable or disable 3D terrain visualization",
-              parameters: {
-                type: "object",
-                properties: {
-                  show: { type: "boolean", description: "true to enable, false to disable" }
-                },
-                required: ["show"]
-              }
-            }
-          },
-          {
-            type: "function",
-            function: {
-              name: "toggle_buildings",
-              description: "Show or hide 3D buildings on the map",
-              parameters: {
-                type: "object",
-                properties: {
-                  show: { type: "boolean", description: "true to show, false to hide" }
-                },
-                required: ["show"]
-              }
-            }
-          },
-          {
-            type: "function",
-            function: {
-              name: "toggle_water_bodies",
-              description: "Show or hide water bodies including Butuanon River",
-              parameters: {
-                type: "object",
-                properties: {
-                  show: { type: "boolean", description: "true to show, false to hide" }
-                },
-                required: ["show"]
-              }
-            }
-          },
-          {
-            type: "function",
-            function: {
-              name: "zoom_to_area",
-              description: "Zoom the map to a specific area or barangay",
-              parameters: {
-                type: "object",
-                properties: {
-                  area: {
-                    type: "string",
-                    enum: ["paknaan", "umapad", "ibabao", "casuntingan", "maguikay", "tabok", "banilad", "subangdaku", "cabancalan", "canduman", "butuanon-river"],
-                    description: "The area to zoom to"
-                  }
-                },
-                required: ["area"]
-              }
-            }
-          },
-          {
-            type: "function",
-            function: {
-              name: "show_all_layers",
-              description: "Enable all visualization layers (flood zones and water bodies)",
-              parameters: { type: "object", properties: {} }
+          }, 500);
+        }, 300);
+      }
+    } else {
+      chatbotToggle.classList.remove('hidden');
+    }
+  });
+
+  chatbotClose.addEventListener('click', () => {
+    chatbotWindow.classList.remove('open');
+    chatbotToggle.classList.remove('hidden');
+  });
+
+  chatbotSend.addEventListener('click', sendMessage);
+  chatbotInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  function addMessage(content, type) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${type}`;
+    messageDiv.textContent = content;
+    chatbotMessages.appendChild(messageDiv);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  }
+
+  function addSystemMessage(content) {
+    addMessage(content, 'system');
+  }
+
+  function showTypingIndicator() {
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing-indicator';
+    typingDiv.id = 'typingIndicator';
+    typingDiv.innerHTML = '<span></span><span></span><span></span>';
+    chatbotMessages.appendChild(typingDiv);
+    chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    const typingDiv = document.getElementById('typingIndicator');
+    if (typingDiv) typingDiv.remove();
+  }
+
+  async function sendMessage() {
+    const message = chatbotInput.value.trim();
+    if (!message) return;
+
+    if (!groqApiKey) {
+      addSystemMessage('Please set your Groq API key first.');
+      const key = prompt('Enter your Groq API key:');
+      if (key && key.trim()) {
+        groqApiKey = key.trim();
+        localStorage.setItem('groqApiKey', groqApiKey);
+        addSystemMessage('API key saved! Please send your message again.');
+      }
+      return;
+    }
+
+    addMessage(message, 'user');
+    chatbotInput.value = '';
+    chatbotSend.disabled = true;
+    showTypingIndicator();
+
+    try {
+      const tools = [
+        {
+          type: "function",
+          function: {
+            name: "toggle_flood_layer",
+            description: "Show or hide flood risk zones on the map",
+            parameters: {
+              type: "object",
+              properties: {
+                show: { type: "boolean", description: "true to show, false to hide" }
+              },
+              required: ["show"]
             }
           }
-        ];
+        },
+        {
+          type: "function",
+          function: {
+            name: "toggle_terrain",
+            description: "Enable or disable 3D terrain visualization",
+            parameters: {
+              type: "object",
+              properties: {
+                show: { type: "boolean", description: "true to enable, false to disable" }
+              },
+              required: ["show"]
+            }
+          }
+        },
+        {
+          type: "function",
+          function: {
+            name: "toggle_buildings",
+            description: "Show or hide 3D buildings on the map",
+            parameters: {
+              type: "object",
+              properties: {
+                show: { type: "boolean", description: "true to show, false to hide" }
+              },
+              required: ["show"]
+            }
+          }
+        },
+        {
+          type: "function",
+          function: {
+            name: "toggle_water_bodies",
+            description: "Show or hide water bodies including Butuanon River",
+            parameters: {
+              type: "object",
+              properties: {
+                show: { type: "boolean", description: "true to show, false to hide" }
+              },
+              required: ["show"]
+            }
+          }
+        },
+        {
+          type: "function",
+          function: {
+            name: "zoom_to_area",
+            description: "Zoom the map to a specific area or barangay in Mandaue",
+            parameters: {
+              type: "object",
+              properties: {
+                area: {
+                  type: "string",
+                  enum: ["paknaan", "umapad", "ibabao", "estancia", "casuntingan", "maguikay", "tabok", "banilad", "subangdaku", "tingub", "cabancalan", "canduman", "alang-alang", "butuanon-river", "as-fortuna"],
+                  description: "The area to zoom to"
+                }
+              },
+              required: ["area"]
+            }
+          }
+        },
+        {
+          type: "function",
+          function: {
+            name: "show_all_layers",
+            description: "Enable all visualization layers (flood zones and water bodies)",
+            parameters: { type: "object", properties: {} }
+          }
+        }
+      ];
 
-        // Build conversation with context
-        const systemPrompt = `You are Zone Bot, an expert assistant for the Mandaue City Flood Risk Analysis and Zoning Map application. You help users understand zoning districts, flood risks, and map features.
+      const systemPrompt = `You are Zone Bot, an expert assistant for the Mandaue City Flood Risk Analysis and Zoning Map application. You help users understand zoning districts, flood risks, and map features.
 
 You can interact with the map using these functions:
 - toggle_flood_layer: Show/hide flood risk zones
@@ -1800,44 +560,107 @@ You can interact with the map using these functions:
 - zoom_to_area: Zoom to specific areas (paknaan, banilad, subangdaku, etc.)
 - show_all_layers: Enable all visualization layers
 
-Use these functions when users ask to see areas, view layers, or explore the map.
-
 ZONING DISTRICTS:
-1. Residential (R-1): Located in Cabancalan-Canduman area. Allows single-family houses but no malls or factories. Moderate flood risk.
-2. Commercial (C-2): Situated in A.S. Fortuna-Banilad corridor. Permits houses and malls but no factories. High flood risk.
-3. Industrial (I-2): Found in Subangdaku belt. Allows malls and factories but no houses. High flood risk from Butuanon River.
+1. Residential (R-1): Cabancalan-Canduman, Paknaan-Umapad, Casili-Jagobiao. Allows houses, no malls/factories. Low to critical flood risk.
+2. Residential (R-2): Guizo. Medium-density residential. Allows houses, no malls/factories. Low flood risk.
+3. Commercial (C-2): A.S. Fortuna-Banilad corridor, Maguikay-Tabok strip. High-traffic retail and business. Permits houses and malls, no factories. High flood risk.
+4. Commercial (C-3): Centro Business District. Historic commercial center, dense retail. Permits houses and malls, no factories. Moderate flood risk.
+5. Industrial (I-1): Opao Light Industrial Park. Light manufacturing and warehouses. Allows malls and factories, no houses. Moderate flood risk.
+6. Industrial (I-2): Subangdaku-Tingub belt, Basak-Looc corridor. Heavy manufacturing, logistics centers. Allows malls and factories, no houses. High flood risk from Butuanon River.
+7. Mixed-Use (MU-1): Banilad area. Combines residential, commercial, institutional uses. Growing business district. Moderate flood risk.
+8. Mixed-Use (MU-2): North Reclamation. Modern IT parks, condominiums. High density. Low flood risk.
 
 FLOOD RISK ZONES:
-1. CRITICAL (dark red): Roof-level flooding (6-9ft). Areas include Paknaan-Umapad, Ibabao-Estancia, Casuntingan, Maguikay-Tabok. Evacuation recommended.
-2. HIGH (red): Chest to 2nd floor flooding (5-8ft). Adjacent to critical zones.
-3. MODERATE (orange): Knee-deep flooding (2-4ft). Areas like Banilad-A.S. Fortuna and Cabancalan-Canduman.
-4. LOW (yellow): Minor street flooding (less than 6 inches). Eastern elevated areas and western periphery.
+1. CRITICAL (dark maroon): Roof-level flooding 6-9ft. Paknaan-Umapad, Ibabao-Estancia, Casuntingan, Maguikay-Tabok. Evacuation recommended during typhoons.
+2. HIGH (bright red): Chest to 2nd floor flooding 5-8ft. Adjacent to critical zones. Alang-Alang Buffer, Tingub Extended.
+3. MODERATE (orange): Knee-deep flooding 2-4ft. Banilad-A.S. Fortuna, Cabancalan-Canduman.
+4. LOW (yellow): Minor street flooding under 6 inches. Eastern elevated areas, western periphery.
 
-BUTUANON RIVER: 23km river from mountains to sea. Main flood source. Flows through Mandaue from Banilad to Cabancalan to Casuntingan to Tingub to Maguikay to Tabok to Ibabao to Alang-alang to Paknaan to Umapad to Mactan Channel.
+BUTUANON RIVER: 23km river flowing through Mandaue from mountains to Mactan Channel. Main flood source. Path: Banilad → Cabancalan → Casuntingan → Tingub → Maguikay → Tabok → Ibabao → Alang-alang → Paknaan → Umapad.
 
 MAP FEATURES:
-- 3D Terrain: Shows elevation with hillshading
-- 3D Buildings: Extrudes buildings to real heights
-- Flood Risk Zones: Overlays risk areas
-- Water Bodies: Shows rivers and waterways
-- Elevation Lines: Contour lines showing elevation
-- Search: Find addresses, buildings, POIs in Mandaue
+- 3D Terrain: Shows elevation with hillshading, 3x exaggeration
+- 3D Buildings: Extrudes buildings to real heights (improved rendering to prevent clipping)
+- Flood Risk Zones: Color-coded risk overlays with distinct shades for better differentiation
+- Water Bodies: Rivers, streams, waterways
+- Elevation Lines: Topographic contour lines
+- Search: Find addresses, buildings, POIs
 
-DATA SOURCE: MCDRRMO 2022-2025 flood incidents. Over 29,000 evacuees in November 2025.
+DATA: MCDRRMO 2022-2025 flood incidents. 29,000+ evacuees Nov 2025. 675 houses destroyed Dec 2022.
 
-IMPORTANT RESPONSE GUIDELINES:
-- Write in clear, natural sentences without markdown formatting
-- Do NOT use asterisks, bold text, or special formatting
-- Use plain text only with proper punctuation
-- Be conversational and friendly
-- Keep responses concise and well-organized
-- Use numbered lists when listing multiple items
-- Answer questions directly and accurately
-- When you use a function, mention what you did in your response`;
+Write in clear, natural sentences without markdown formatting. No asterisks or special formatting. Be conversational and helpful.`;
 
-        conversationHistory.push({ role: 'user', content: message });
+      conversationHistory.push({ role: 'user', content: message });
 
-        let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${groqApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...conversationHistory
+          ],
+          tools: tools,
+          tool_choice: "auto",
+          temperature: 0.7,
+          max_tokens: 500
+        })
+      });
+
+      hideTypingIndicator();
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `API error: ${response.status}`);
+      }
+
+      let data = await response.json();
+      let assistantMessage = data.choices[0].message;
+
+      if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
+        conversationHistory.push(assistantMessage);
+
+        for (const toolCall of assistantMessage.tool_calls) {
+          const functionName = toolCall.function.name;
+          const functionArgs = JSON.parse(toolCall.function.arguments);
+
+          let result;
+          switch (functionName) {
+            case 'toggle_flood_layer':
+              result = mapControls.toggleFloodLayer(functionArgs.show);
+              break;
+            case 'toggle_terrain':
+              result = mapControls.toggleTerrainLayer(functionArgs.show);
+              break;
+            case 'toggle_buildings':
+              result = mapControls.toggleBuildingsLayer(functionArgs.show);
+              break;
+            case 'toggle_water_bodies':
+              result = mapControls.toggleWaterLayer(functionArgs.show);
+              break;
+            case 'zoom_to_area':
+              result = mapControls.zoomToArea(functionArgs.area);
+              break;
+            case 'show_all_layers':
+              result = mapControls.showAllLayers();
+              break;
+            default:
+              result = 'Function not found';
+          }
+
+          conversationHistory.push({
+            role: 'tool',
+            tool_call_id: toolCall.id,
+            content: result
+          });
+        }
+
+        showTypingIndicator();
+        response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1849,117 +672,1540 @@ IMPORTANT RESPONSE GUIDELINES:
               { role: 'system', content: systemPrompt },
               ...conversationHistory
             ],
-            tools: tools,
-            tool_choice: "auto",
             temperature: 0.7,
             max_tokens: 500
           })
         });
 
         hideTypingIndicator();
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error?.message || `API error: ${response.status}`);
-        }
-
-        let data = await response.json();
-        let assistantMessage = data.choices[0].message;
-
-        // Handle function calls
-        if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
-          conversationHistory.push(assistantMessage);
-
-          // Execute each function call
-          for (const toolCall of assistantMessage.tool_calls) {
-            const functionName = toolCall.function.name;
-            const functionArgs = JSON.parse(toolCall.function.arguments);
-
-            let result;
-            switch (functionName) {
-              case 'toggle_flood_layer':
-                result = mapControls.toggleFloodLayer(functionArgs.show);
-                break;
-              case 'toggle_terrain':
-                result = mapControls.toggleTerrainLayer(functionArgs.show);
-                break;
-              case 'toggle_buildings':
-                result = mapControls.toggleBuildingsLayer(functionArgs.show);
-                break;
-              case 'toggle_water_bodies':
-                result = mapControls.toggleWaterLayer(functionArgs.show);
-                break;
-              case 'zoom_to_area':
-                result = mapControls.zoomToArea(functionArgs.area);
-                break;
-              case 'show_all_layers':
-                result = mapControls.showAllLayers();
-                break;
-              default:
-                result = 'Function not found';
-            }
-
-            // Add function result to conversation
-            conversationHistory.push({
-              role: 'tool',
-              tool_call_id: toolCall.id,
-              content: result
-            });
-          }
-
-          // Get final response from AI after function execution
-          showTypingIndicator();
-          response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${groqApiKey}`
-            },
-            body: JSON.stringify({
-              model: 'llama-3.3-70b-versatile',
-              messages: [
-                { role: 'system', content: systemPrompt },
-                ...conversationHistory
-              ],
-              temperature: 0.7,
-              max_tokens: 500
-            })
-          });
-
-          hideTypingIndicator();
-          data = await response.json();
-          assistantMessage = data.choices[0].message;
-        }
-
-        const aiResponse = assistantMessage.content;
-        conversationHistory.push({ role: 'assistant', content: aiResponse });
-        addMessage(aiResponse, 'ai');
-
-        // Keep conversation history manageable (last 10 messages)
-        if (conversationHistory.length > 10) {
-          conversationHistory = conversationHistory.slice(-10);
-        }
-
-      } catch (error) {
-        hideTypingIndicator();
-        console.error('Chatbot error:', error);
-
-        if (error.message.includes('401') || error.message.includes('authentication')) {
-          addSystemMessage('Invalid API key. Please check your Groq API key.');
-          groqApiKey = '';
-          localStorage.removeItem('groqApiKey');
-        } else if (error.message.includes('rate limit')) {
-          addSystemMessage('Rate limit reached. Please wait a moment and try again.');
-        } else {
-          addSystemMessage(`Error: ${error.message}. Please try again.`);
-        }
-      } finally {
-        chatbotSend.disabled = false;
-        chatbotInput.focus();
+        data = await response.json();
+        assistantMessage = data.choices[0].message;
       }
+
+      const aiResponse = assistantMessage.content;
+      conversationHistory.push({ role: 'assistant', content: aiResponse });
+      addMessage(aiResponse, 'ai');
+
+      if (conversationHistory.length > 10) {
+        conversationHistory = conversationHistory.slice(-10);
+      }
+
+    } catch (error) {
+      hideTypingIndicator();
+      console.error('Chatbot error:', error);
+
+      if (error.message.includes('401') || error.message.includes('authentication')) {
+        addSystemMessage('Invalid API key. Please check your Groq API key.');
+        groqApiKey = '';
+        localStorage.removeItem('groqApiKey');
+      } else if (error.message.includes('rate limit')) {
+        addSystemMessage('Rate limit reached. Please wait a moment and try again.');
+      } else {
+        addSystemMessage(`Error: ${error.message}. Please try again.`);
+      }
+    } finally {
+      chatbotSend.disabled = false;
+      chatbotInput.focus();
     }
-  </script>
+  }
+</script>
 
 </body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ZoneGuide – Mandaue Flood Risk Analysis</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%233b82f6'/%3E%3Cstop offset='100%25' style='stop-color:%231e40af'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect fill='url(%23g)' width='100' height='100' rx='20'/%3E%3Cpath fill='%23ffffff' d='M25 35 L50 20 L75 35 L75 70 L50 85 L25 70 Z' opacity='0.9'/%3E%3Cpath fill='%2310b981' d='M35 45 L50 37 L65 45 L65 60 L50 68 L35 60 Z'/%3E%3Cpath fill='%23ef4444' d='M42 52 L50 48 L58 52 L58 58 L50 62 L42 58 Z' opacity='0.8'/%3E%3C/svg%3E">
 
-</html>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+
+<style>
+  body { margin:0; padding:0; font-family:'Inter', system-ui, sans-serif; background:#0a0a0a; color:#fff; }
+  #map { position:absolute; top:0; bottom:0; width:100%; }
+
+  /* - Jericho: Enhanced controls panel with glassmorphism effect */
+  .controls{
+    position:absolute; top:20px; left:20px;
+    background:rgba(15,15,15,0.85);
+    backdrop-filter: blur(12px);
+    border:1px solid rgba(255,255,255,0.1);
+    padding:24px; width:300px; z-index:10;
+    border-radius:16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .controls-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .controls-logo {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .controls-logo svg {
+    width: 22px;
+    height: 22px;
+    fill: white;
+  }
+  .controls-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+  .controls h3{
+    margin:0 0 16px 0; 
+    font-size:13px; 
+    font-weight:700;
+    text-transform:uppercase; 
+    letter-spacing:1.5px;
+    color:#94a3b8; 
+    border-bottom:1px solid rgba(255,255,255,0.1); 
+    padding-bottom:12px;
+  }
+  
+  /* - Jericho: Modern button design with hover animations and removed emojis */
+  .filter-btn{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:100%;
+    padding:14px 16px; 
+    margin-bottom:10px;
+    background:rgba(30,30,30,0.6); 
+    border:1.5px solid rgba(255,255,255,0.15);
+    color:#cbd5e1; 
+    cursor:pointer; 
+    font-size:13px; 
+    font-weight:500;
+    text-align:left; 
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    border-radius:10px; 
+    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position:relative;
+    overflow:hidden;
+  }
+  .filter-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+  }
+  .filter-btn:hover::before {
+    left: 100%;
+  }
+  .filter-btn:hover{ 
+    border-color:rgba(255,255,255,0.4); 
+    color:#fff; 
+    transform:translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .filter-btn.active{ 
+    background:linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color:#fff; 
+    border-color:#3b82f6; 
+    font-weight:600;
+    box-shadow: 0 4px 16px rgba(59,130,246,0.4);
+  }
+
+  /* - Jericho: Improved legend with better visual hierarchy */
+  .legend{
+    position:absolute; bottom:30px; right:20px;
+    background:rgba(15,15,15,0.85);
+    backdrop-filter: blur(12px);
+    border:1px solid rgba(255,255,255,0.1);
+    padding:20px; 
+    font-size:12px;
+    border-radius:16px;
+    max-width:280px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  .legend h4{
+    margin:0 0 12px 0; 
+    font-size:11px; 
+    font-weight:700;
+    text-transform:uppercase; 
+    letter-spacing:1.2px;
+    color:#94a3b8; 
+    border-bottom:1px solid rgba(255,255,255,0.1); 
+    padding-bottom:10px;
+  }
+  .legend-item{ 
+    display:flex; 
+    align-items:center; 
+    margin-bottom:10px;
+    transition: transform 0.2s;
+  }
+  .legend-item:hover {
+    transform: translateX(4px);
+  }
+  .color-box{ 
+    width:16px; 
+    height:16px; 
+    margin-right:12px; 
+    border:1px solid rgba(255,255,255,0.2); 
+    border-radius:4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  /* - Jericho: Enhanced elevation controls with better spacing */
+  .elevation-controls{
+    position:absolute; top:20px; right:20px;
+    background:rgba(15,15,15,0.85);
+    backdrop-filter: blur(12px);
+    border:1px solid rgba(255,255,255,0.1);
+    padding:20px; width:260px; z-index:10;
+    border-radius:16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .elevation-controls h3{
+    margin:0 0 14px 0; 
+    font-size:13px; 
+    font-weight:700;
+    text-transform:uppercase; 
+    letter-spacing:1.5px;
+    color:#94a3b8; 
+    border-bottom:1px solid rgba(255,255,255,0.1); 
+    padding-bottom:10px;
+  }
+  
+  /* - Jericho: Redesigned toggle buttons with clean indicators (no emojis) */
+  .toggle-btn{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    width:100%;
+    padding:12px 16px; 
+    margin-bottom:10px;
+    background:rgba(30,30,30,0.6); 
+    border:1.5px solid rgba(255,255,255,0.15);
+    color:#cbd5e1; 
+    cursor:pointer; 
+    font-size:12px; 
+    font-weight:500;
+    text-align:left;
+    border-radius:10px; 
+    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .toggle-btn:hover{ 
+    border-color:rgba(255,255,255,0.4); 
+    color:#fff;
+    transform:translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .toggle-btn.active{ 
+    background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color:#fff; 
+    border-color:#ef4444; 
+    font-weight:600;
+    box-shadow: 0 4px 16px rgba(239,68,68,0.4);
+  }
+  /* - Jericho: Added status indicator circles instead of emoji */
+  .toggle-btn::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #475569;
+    border: 2px solid #64748b;
+    transition: all 0.3s;
+  }
+  .toggle-btn.active::after {
+    background: #fef2f2;
+    border-color: #ffffff;
+    box-shadow: 0 0 8px rgba(255,255,255,0.5);
+  }
+
+  /* - Jericho: Modern search box with improved styling and no emoji */
+  .search-box{
+    position:absolute; top:24px; left:50%; transform:translateX(-50%);
+    background:#ffffff;
+    border:none;
+    padding:0;
+    width:540px; 
+    z-index:100;
+    border-radius:14px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.1);
+  }
+  .search-input{
+    width:100%; 
+    padding:18px 24px;
+    background:#ffffff; 
+    border:none;
+    color:#1f2937; 
+    font-size:15px;
+    border-radius:14px;
+    outline:none;
+    font-family:system-ui,sans-serif;
+    box-shadow:none;
+    font-weight:500;
+  }
+  .search-input::placeholder{ color:#9ca3af; font-weight:400; }
+  .search-input:focus{ 
+    outline:3px solid #3b82f6; 
+    outline-offset:-3px;
+  }
+  .search-results{
+    background:#ffffff;
+    border-radius:0 0 14px 14px;
+    max-height:400px; 
+    overflow-y:auto;
+    margin:0;
+    padding:0;
+  }
+  
+  /* - Jericho: Enhanced search result items with better hover states */
+  .search-result-item{
+    padding:16px 24px; 
+    background:#ffffff; 
+    border:none;
+    border-top:1px solid #f3f4f6;
+    margin:0; 
+    cursor:pointer;
+    transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .search-result-item:first-child{ border-top:none; }
+  .search-result-item:last-child{ border-radius:0 0 14px 14px; }
+  .search-result-item:hover{ 
+    background:#f9fafb; 
+    transform:translateX(4px);
+  }
+  .search-result-title{ 
+    color:#1f2937; 
+    font-weight:600; 
+    font-size:14px; 
+    margin:0;
+    padding:0;
+  }
+  .search-result-address{ 
+    color:#6b7280; 
+    font-size:12px; 
+    margin-top:4px; 
+    padding:0;
+  }
+
+  /* - Jericho: Added info box styling for better data presentation */
+  .info-box {
+    margin-top:16px; 
+    padding:14px; 
+    background:rgba(30,30,30,0.4);
+    border-left:3px solid #3b82f6;
+    border-radius:8px; 
+    font-size:11px; 
+    color:#94a3b8; 
+    line-height:1.6;
+  }
+  .info-box strong {
+    color:#3b82f6;
+    font-weight:600;
+  }
+  .info-box em {
+    color:#64748b;
+    font-style:normal;
+  }
+
+  /* - Jericho: Custom scrollbar for better aesthetics */
+  .search-results::-webkit-scrollbar {
+    width: 8px;
+  }
+  .search-results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  .search-results::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+  .search-results::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+  .legend::-webkit-scrollbar {
+    width: 6px;
+  }
+  .legend::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+  .legend::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+  }
+
+  /* - Jericho: AI Chatbot Styling - Modern design without emojis */
+  .chatbot-button {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .chatbot-button.hidden {
+    display: none;
+  }
+
+  .chatbot-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+  }
+
+  .chatbot-button svg {
+    width: 30px;
+    height: 30px;
+    fill: white;
+  }
+
+  .chatbot-window {
+    position: fixed;
+    bottom: 110px;
+    left: 30px;
+    width: 380px;
+    height: auto;
+    max-height: calc(100vh - 160px);
+    background: rgba(15, 15, 15, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    z-index: 11;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .chatbot-window.open {
+    display: flex;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .chatbot-header {
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .chatbot-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .chatbot-header .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .chatbot-header .close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .chatbot-messages {
+    flex: 0 1 auto;
+    height: 400px;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .chatbot-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chatbot-messages::-webkit-scrollbar-track {
+    background: #1a1a1a;
+  }
+
+  .chatbot-messages::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+  }
+
+  .chat-message {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .chat-message.user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-right-radius: 4px;
+  }
+
+  .chat-message.ai {
+    align-self: flex-start;
+    background: #222;
+    color: #e5e5e5;
+    border: 1px solid #333;
+    border-bottom-left-radius: 4px;
+  }
+
+  .chat-message.system {
+    align-self: center;
+    background: #1a1a1a;
+    color: #888;
+    font-size: 12px;
+    font-style: italic;
+    border: 1px solid #2a2a2a;
+    max-width: 90%;
+    text-align: center;
+  }
+
+  .chatbot-input-area {
+    flex-shrink: 0;
+    padding: 12px;
+    background: #1a1a1a;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    gap: 8px;
+  }
+
+  .chatbot-input {
+    flex: 1;
+    padding: 10px 12px;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    outline: none;
+    font-family: system-ui, sans-serif;
+  }
+
+  .chatbot-input:focus {
+    border-color: #667eea;
+  }
+
+  .chatbot-input::placeholder {
+    color: #666;
+  }
+
+  .chatbot-send-btn {
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .chatbot-send-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+
+  .chatbot-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px;
+    background: #222;
+    border: 1px solid #333;
+    border-radius: 12px;
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+
+  .typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: #667eea;
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+  }
+
+  .typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes typing {
+    0%, 60%, 100% {
+      transform: translateY(0);
+      opacity: 0.7;
+    }
+    30% {
+      transform: translateY(-10px);
+      opacity: 1;
+    }
+  }
+
+  /* Compass styling */
+  .compass-container{ position:absolute; top:100px; left:50%; transform:translateX(-50%); z-index:99; pointer-events:none; }
+  .compass-display{ background:rgba(15,15,15,0.85); border:1px solid rgba(255,255,255,0.08); padding:8px 14px; border-radius:20px; display:flex; gap:8px; align-items:center; color:#fff; font-family:system-ui, sans-serif; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+  .compass-north{ color:#ef4444; font-weight:700; font-size:14px; }
+  .compass-bearing{ font-family:'Courier New',monospace; min-width:40px; text-align:center; font-weight:600; }
+  .compass-divider{ width:1px; height:20px; background:rgba(255,255,255,0.08); }
+
+</style>
+</head>
+
+<body>
+<div id="map"></div>
+
+<!-- Compass display (top center) -->
+<div class="compass-container" id="compassContainer">
+  <div class="compass-display">
+    <div class="compass-north" id="compassNorth">N</div>
+    <div class="compass-divider"></div>
+    <div class="compass-bearing" id="compassBearing">0°</div>
+  </div>
+</div>
+
+
+<div class="search-box">
+  <input 
+    type="text" 
+    id="searchInput" 
+    class="search-input" 
+    placeholder="Search for address, building, or place in Mandaue..."
+  >
+  <div id="searchResults" class="search-results"></div>
+</div>
+
+<div class="controls">
+  <div class="controls-header">
+    <div class="controls-logo">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5zm0 18c-3.87 0-7-3.13-7-7V8.3l7-3.11 7 3.11V13c0 3.87-3.13 7-7 7zm-1-11h2v6h-2zm0 8h2v2h-2z"/>
+      </svg>
+    </div>
+    <h2 class="controls-title">ZoneGuide</h2>
+  </div>
+  
+  <h3>Project Filter</h3>
+  <button class="filter-btn active" data-filter="all">
+    <span>View All Zones</span>
+  </button>
+  <button class="filter-btn" data-filter="house">
+    <span>Residential Project</span>
+  </button>
+  <button class="filter-btn" data-filter="factory">
+    <span>Industrial Facility</span>
+  </button>
+  <button class="filter-btn" data-filter="mall">
+    <span>Commercial Complex</span>
+  </button>
+</div>
+
+<div class="legend">
+  <h4>Zoning Districts</h4>
+  <div class="legend-item"><span class="color-box" style="background:#facc15"></span>Residential (R-1)</div>
+  <div class="legend-item"><span class="color-box" style="background:#fde047"></span>Residential (R-2)</div>
+  <div class="legend-item"><span class="color-box" style="background:#3b82f6"></span>Commercial (C-2)</div>
+  <div class="legend-item"><span class="color-box" style="background:#2563eb"></span>Commercial (C-3)</div>
+  <div class="legend-item"><span class="color-box" style="background:#9333ea"></span>Industrial (I-1)</div>
+  <div class="legend-item"><span class="color-box" style="background:#a855f7"></span>Industrial (I-2)</div>
+  <div class="legend-item"><span class="color-box" style="background:#10b981"></span>Mixed-Use (MU-1)</div>
+  <div class="legend-item"><span class="color-box" style="background:#059669"></span>Mixed-Use (MU-2)</div>
+  
+  <h4 style="margin-top:18px;">Flood Risk Zones</h4>
+  <div class="legend-item"><span class="color-box" style="background:#7f1d1d"></span>Critical (Roof-level)</div>
+  <div class="legend-item"><span class="color-box" style="background:#dc2626"></span>High Risk (Chest-deep)</div>
+  <div class="legend-item"><span class="color-box" style="background:#f97316"></span>Moderate (Knee-deep)</div>
+  <div class="legend-item"><span class="color-box" style="background:#fbbf24"></span>Low (Street flooding)</div>
+</div>
+
+<div class="elevation-controls">
+  <h3>Map Layers</h3>
+  <button class="toggle-btn" id="terrainBtn">3D Terrain Map</button>
+  <button class="toggle-btn" id="buildingsBtn">3D Buildings</button>
+  <button class="toggle-btn" id="floodBtn">Flood Risk Zones</button>
+  <button class="toggle-btn" id="riverBtn">Water Bodies</button>
+  <button class="toggle-btn" id="contourBtn">Elevation Lines</button>
+  
+  <div class="info-box">
+    <strong>Data Sources:</strong> MCDRRMO 2022-2025 flood incidents<br>
+    <strong>Recent Event:</strong> 29,000+ evacuated Nov 2025<br><br>
+    <em>Tip: Toggle multiple layers to analyze flood patterns and terrain elevation</em>
+  </div>
+</div>
+
+<!-- - Jericho: AI Chatbot Interface -->
+<button class="chatbot-button" id="chatbotToggle">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2 22l5.71-.97C9 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.38 0-2.68-.31-3.85-.85l-.27-.13-2.82.48.48-2.82-.13-.27C4.31 14.68 4 13.38 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8zm-3-7h2v2H9v-2zm4 0h2v2h-2v-2z" />
+  </svg>
+</button>
+
+<div class="chatbot-window" id="chatbotWindow">
+  <div class="chatbot-header">
+    <h3>Zone Bot</h3>
+    <button class="close-btn" id="chatbotClose">&times;</button>
+  </div>
+  <div class="chatbot-messages" id="chatbotMessages">
+    <div class="chat-message system">
+      Welcome! I can help you understand flood risks, zoning regulations, and map features. Ask me anything!
+    </div>
+  </div>
+  <div class="chatbot-input-area">
+    <input type="text" class="chatbot-input" id="chatbotInput" 
+      placeholder="Ask about flood zones, zoning, or map features..." autocomplete="off">
+    <button class="chatbot-send-btn" id="chatbotSend">Send</button>
+  </div>
+</div>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZmxhcmVpdW0iLCJhIjoiY21qaXF4eDRyMTQ5ZjNlcTF2c3Ntd3NzOSJ9.jb1Fbw5JUyvBJ2czkccBXA';
+
+  // - Jericho: Expanded and corrected zoning data with more realistic boundaries
+  const zoningData = {
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        properties: {
+          name: "Cabancalan–Canduman Residential District",
+          zone: "Residential (R-1)",
+          color: "#facc15",
+          allows_house: true,
+          allows_mall: false,
+          allows_factory: false,
+          notes: "Primary residential area with predominantly low-rise housing and community facilities.",
+          floodRisk: "moderate",
+          population: "~15,000 residents"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.918, 10.360], [123.932, 10.365], [123.940, 10.362],
+            [123.946, 10.355], [123.943, 10.345], [123.935, 10.341],
+            [123.925, 10.344], [123.917, 10.352], [123.918, 10.360]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "Casili-Jagobiao Residential",
+          zone: "Residential (R-1)",
+          color: "#facc15",
+          allows_house: true,
+          allows_mall: false,
+          allows_factory: false,
+          notes: "Growing residential area with mixed low to medium density housing.",
+          floodRisk: "low",
+          population: "~8,500 residents"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.950, 10.355], [123.960, 10.358], [123.965, 10.352],
+            [123.962, 10.345], [123.954, 10.343], [123.948, 10.348],
+            [123.950, 10.355]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "A.S. Fortuna Commercial Corridor",
+          zone: "Commercial (C-2)",
+          color: "#3b82f6",
+          allows_house: true,
+          allows_mall: true,
+          allows_factory: false,
+          notes: "Major commercial thoroughfare with retail shops, restaurants, and business offices. High traffic area.",
+          floodRisk: "high",
+          businesses: "250+ establishments"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.913, 10.348], [123.930, 10.351], [123.937, 10.346],
+            [123.932, 10.335], [123.923, 10.331], [123.911, 10.334],
+            [123.909, 10.342], [123.913, 10.348]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "Centro Business District",
+          zone: "Commercial (C-3)",
+          color: "#2563eb",
+          allows_house: true,
+          allows_mall: true,
+          allows_factory: false,
+          notes: "Historic commercial center of Mandaue. Dense retail and services.",
+          floodRisk: "moderate",
+          businesses: "400+ establishments"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.925, 10.315], [123.935, 10.318], [123.939, 10.313],
+            [123.936, 10.305], [123.928, 10.303], [123.923, 10.308],
+            [123.925, 10.315]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "Subangdaku–Tingub Industrial Zone",
+          zone: "Industrial (I-2)",
+          color: "#a855f7",
+          allows_house: false,
+          allows_mall: true,
+          allows_factory: true,
+          notes: "Central industrial belt housing manufacturing facilities, warehouses, and logistics centers. Critical flood risk area.",
+          floodRisk: "high",
+          facilities: "120+ industrial units"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.916, 10.330], [123.935, 10.333], [123.941, 10.326],
+            [123.938, 10.315], [123.932, 10.309], [123.921, 10.307],
+            [123.911, 10.311], [123.909, 10.320], [123.914, 10.328],
+            [123.916, 10.330]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "Opao Light Industrial Park",
+          zone: "Industrial (I-1)",
+          color: "#9333ea",
+          allows_house: false,
+          allows_mall: true,
+          allows_factory: true,
+          notes: "Light industrial and warehouse district. Mix of small to medium manufacturing.",
+          floodRisk: "moderate",
+          facilities: "65+ units"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.945, 10.295], [123.955, 10.298], [123.958, 10.292],
+            [123.954, 10.285], [123.946, 10.283], [123.942, 10.288],
+            [123.945, 10.295]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "Banilad Mixed-Use Development",
+          zone: "Mixed-Use (MU-1)",
+          color: "#10b981",
+          allows_house: true,
+          allows_mall: true,
+          allows_factory: false,
+          notes: "Dynamic mixed-use area combining residential, commercial, and institutional uses. Growing business district.",
+          floodRisk: "moderate",
+          density: "Medium-high density"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.925, 10.355], [123.937, 10.358], [123.943, 10.352],
+            [123.940, 10.345], [123.933, 10.342], [123.926, 10.346],
+            [123.925, 10.355]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "North Reclamation Mixed Zone",
+          zone: "Mixed-Use (MU-2)",
+          color: "#059669",
+          allows_house: true,
+          allows_mall: true,
+          allows_factory: false,
+          notes: "Reclaimed area with modern mixed-use development. IT parks and condominiums.",
+          floodRisk: "low",
+          density: "High density"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.905, 10.325], [123.915, 10.328], [123.920, 10.323],
+            [123.918, 10.315], [123.910, 10.312], [123.903, 10.317],
+            [123.905, 10.325]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "Paknaan–Umapad Residential",
+          zone: "Residential (R-1)",
+          color: "#facc15",
+          allows_house: true,
+          allows_mall: false,
+          allows_factory: false,
+          notes: "Densely populated residential barangays near Butuanon River. Frequent evacuation area during typhoons.",
+          floodRisk: "critical",
+          population: "~20,000 residents"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.935, 10.305], [123.945, 10.310], [123.948, 10.305],
+            [123.945, 10.298], [123.938, 10.295], [123.932, 10.298],
+            [123.933, 10.303], [123.935, 10.305]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "Maguikay–Tabok Commercial Strip",
+          zone: "Commercial (C-2)",
+          color: "#3b82f6",
+          allows_house: true,
+          allows_mall: true,
+          allows_factory: false,
+          notes: "Growing commercial area with retail and service businesses. Near major transport routes.",
+          floodRisk: "high",
+          businesses: "180+ establishments"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.939, 10.332], [123.948, 10.336], [123.951, 10.330],
+            [123.947, 10.323], [123.940, 10.320], [123.936, 10.325],
+            [123.939, 10.332]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "Basak–Looc Industrial Corridor",
+          zone: "Industrial (I-2)",
+          color: "#a855f7",
+          allows_house: false,
+          allows_mall: true,
+          allows_factory: true,
+          notes: "Major industrial zone with heavy manufacturing and processing facilities.",
+          floodRisk: "moderate",
+          facilities: "95+ industrial units"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.903, 10.295], [123.913, 10.298], [123.918, 10.292],
+            [123.915, 10.285], [123.906, 10.282], [123.900, 10.287],
+            [123.903, 10.295]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          name: "Guizo Residential Neighborhood",
+          zone: "Residential (R-2)",
+          color: "#fde047",
+          allows_house: true,
+          allows_mall: false,
+          allows_factory: false,
+          notes: "Medium-density residential area with schools and churches.",
+          floodRisk: "low",
+          population: "~12,000 residents"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.908, 10.335], [123.918, 10.338], [123.923, 10.333],
+            [123.920, 10.326], [123.912, 10.323], [123.906, 10.328],
+            [123.908, 10.335]
+          ]]
+        }
+      }
+    ]
+  };
+
+  // - Jericho: Corrected Butuanon River path based on actual geography
+  const butuanonRiver = {
+    type: "Feature",
+    properties: { name: "Butuanon River - 23km watershed from mountains to sea" },
+    geometry: {
+      type: "LineString",
+      coordinates: [
+        [123.900, 10.380], [123.905, 10.377], [123.910, 10.374],
+        [123.915, 10.371], [123.920, 10.368], [123.924, 10.365],
+        [123.928, 10.362], [123.931, 10.359], [123.934, 10.356],
+        [123.937, 10.353], [123.939, 10.350], [123.941, 10.347],
+        [123.943, 10.344], [123.944, 10.341], [123.945, 10.338],
+        [123.946, 10.335], [123.946, 10.332], [123.946, 10.329],
+        [123.945, 10.326], [123.944, 10.323], [123.943, 10.320],
+        [123.942, 10.317], [123.941, 10.314], [123.940, 10.311],
+        [123.939, 10.308], [123.938, 10.305], [123.937, 10.302],
+        [123.936, 10.299], [123.935, 10.296]
+      ]
+    }
+  };
+
+  // - Jericho: Enhanced flood risk zones with more detailed documentation
+  const floodRiskZones = {
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        properties: { 
+          risk: "critical", 
+          name: "CRITICAL: Paknaan-Umapad Overflow Corridor",
+          details: "Roof-level flooding documented during Typhoon Odette and Paeng. 190+ families regularly evacuated.",
+          depth: "6-9 feet (2nd floor to roof level)",
+          frequency: "Every typhoon + sustained heavy rainfall",
+          lastIncident: "November 2025 - 5,000+ evacuees"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.937, 10.304], [123.945, 10.316], [123.948, 10.316],
+            [123.942, 10.304], [123.937, 10.304]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: { 
+          risk: "critical", 
+          name: "CRITICAL: Ibabao-Estancia Major Overflow",
+          details: "Primary overflow point during river spill. Water depth exceeds rescue equipment capacity.",
+          depth: "5-8 feet (chest to 2nd floor)",
+          frequency: "All major storm events",
+          lastIncident: "November 2025 - 8,500+ evacuees"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.940, 10.317], [123.948, 10.329], [123.951, 10.329],
+            [123.945, 10.317], [123.940, 10.317]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: { 
+          risk: "critical", 
+          name: "CRITICAL: Casuntingan Damaged Riprap Zone",
+          details: "675 houses destroyed in December 2022 flood. Riprap damage allows massive overflow.",
+          depth: "4-8 feet (waist to 2nd floor)",
+          frequency: "Annual recurrence",
+          lastIncident: "November 2025 - 12,000+ evacuees"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.935, 10.341], [123.943, 10.353], [123.946, 10.353],
+            [123.940, 10.341], [123.935, 10.341]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: { 
+          risk: "critical", 
+          name: "CRITICAL: Maguikay-Tabok Footbridge Area",
+          details: "Official overflow monitoring point. Bridge regularly submerges.",
+          depth: "3-5 feet (waist to chest)",
+          frequency: "Every heavy rainfall event",
+          lastIncident: "November 2025 - 3,500+ evacuees"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.939, 10.331], [123.947, 10.343], [123.950, 10.343],
+            [123.944, 10.331], [123.939, 10.331]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: { 
+          risk: "high", 
+          name: "HIGH RISK: Alang-Alang Buffer Zone",
+          details: "Adjacent to critical overflow areas. Sitio Pulang Bukid frequently affected.",
+          depth: "2-4 feet (knee to waist)",
+          frequency: "Sustained rainfall periods"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.934, 10.307], [123.937, 10.304], [123.942, 10.304],
+            [123.948, 10.316], [123.951, 10.316], [123.951, 10.319],
+            [123.937, 10.319], [123.934, 10.307]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: { 
+          risk: "high", 
+          name: "HIGH RISK: Tingub Extended Flood Plain",
+          details: "Part of 27 officially designated flood-prone barangays.",
+          depth: "1-3 feet (ankle to knee)",
+          frequency: "Moderate to heavy rainfall"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.936, 10.337], [123.939, 10.331], [123.944, 10.331],
+            [123.950, 10.343], [123.953, 10.343], [123.953, 10.346],
+            [123.941, 10.346], [123.936, 10.337]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: { 
+          risk: "moderate", 
+          name: "MODERATE: Banilad-A.S. Fortuna Drainage Area",
+          details: "M. Cuenco Ave experiences drainage issues. Rolling Hills area reported waist-deep flooding.",
+          depth: "6 inches - 2 feet (street to knee-deep)",
+          frequency: "Heavy downpours and monsoon season"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.929, 10.349], [123.937, 10.361], [123.946, 10.361],
+            [123.946, 10.349], [123.929, 10.349]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: { 
+          risk: "moderate", 
+          name: "MODERATE: Cabancalan-Canduman Catchment",
+          details: "Talamban mini dam provides some flood mitigation.",
+          depth: "3-12 inches (street flooding)",
+          frequency: "Extreme weather events only"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.924, 10.351], [123.931, 10.366], [123.941, 10.366],
+            [123.936, 10.351], [123.924, 10.351]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: { 
+          risk: "low", 
+          name: "LOW RISK: Eastern Elevated Areas",
+          details: "Higher elevation zones. Not typically affected except during unprecedented rainfall.",
+          depth: "< 6 inches (minor street flooding)",
+          frequency: "Rare - only during extreme events"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.950, 10.294], [123.956, 10.294], [123.956, 10.366],
+            [123.950, 10.366], [123.950, 10.294]
+          ]]
+        }
+      },
+      {
+        type: "Feature",
+        properties: { 
+          risk: "low", 
+          name: "LOW RISK: Western Periphery Zone",
+          details: "Distance from river overflow zones provides natural protection.",
+          depth: "< 3 inches (minimal)",
+          frequency: "Very rare"
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [123.919, 10.294], [123.934, 10.294], [123.934, 10.366],
+            [123.919, 10.366], [123.919, 10.294]
+          ]]
+        }
+      }
+    ]
+  };
+
+  let currentData = JSON.parse(JSON.stringify(zoningData));
+
+  function computeBoundsFromGeoJSON(fc) {
+    const bounds = new mapboxgl.LngLatBounds();
+    fc.features.forEach(f => {
+      const coords = f.geometry.coordinates[0];
+      coords.forEach(([lng, lat]) => bounds.extend([lng, lat]));
+    });
+    return bounds;
+  }
+
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/dark-v11',
+    center: [123.93, 10.33],
+    zoom: 12.5,
+    pitch: 0,
+    bearing: 0
+  });
+
+  // - Jericho: State management to prevent layer conflicts
+  let layerStates = {
+    terrain: false,
+    buildings: false,
+    flood: false,
+    river: false,
+    contour: false
+  };
+
+  // - Jericho: Layer loading tracker to prevent race conditions
+  let layersLoaded = {
+    dem: false,
+    waterways: false,
+    buildings: false,
+    contours: false
+  };
+
+  map.on('load', () => {
+    // - Jericho: Initialize all map sources first to prevent undefined source errors
+    map.addSource('mapbox-dem', {
+      type: 'raster-dem',
+      url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      tileSize: 512,
+      maxzoom: 14
+    });
+    layersLoaded.dem = true;
+
+    map.addSource('flood-risk', {
+      type: 'geojson',
+      data: floodRiskZones
+    });
+
+    map.addSource('butuanon-river', {
+      type: 'geojson',
+      data: butuanonRiver
+    });
+
+    map.addSource('zones', { 
+      type: 'geojson', 
+      data: currentData 
+    });
+
+    // - Jericho: Create all layers in proper z-order (bottom to top)
+    
+    // 1. Hillshade (terrain base)
+    map.addLayer({
+      id: 'hillshade',
+      type: 'hillshade',
+      source: 'mapbox-dem',
+      layout: { visibility: 'none' },
+      paint: {
+        'hillshade-exaggeration': 1.5,
+        'hillshade-shadow-color': '#000000',
+        'hillshade-highlight-color': '#ffffff',
+        'hillshade-illumination-direction': 315
+      }
+    });
+
+    // 2. Flood risk zones (below zones and buildings)
+    map.addLayer({
+      id: 'flood-risk-fill',
+      type: 'fill',
+      source: 'flood-risk',
+      layout: { visibility: 'none' },
+      paint: {
+        'fill-color': [
+          'match',
+          ['get', 'risk'],
+          'critical', '#7f1d1d',
+          'high', '#dc2626',
+          'moderate', '#f97316',
+          'low', '#fbbf24',
+          '#888888'
+        ],
+        'fill-opacity': 0.5
+      }
+    });
+
+    map.addLayer({
+      id: 'flood-risk-outline',
+      type: 'line',
+      source: 'flood-risk',
+      layout: { visibility: 'none' },
+      paint: {
+        'line-color': [
+          'match',
+          ['get', 'risk'],
+          'critical', '#7f1d1d',
+          'high', '#dc2626',
+          'moderate', '#f97316',
+          'low', '#fbbf24',
+          '#888888'
+        ],
+        'line-width': 1.5,
+        'line-opacity': 0.7
+      }
+    });
+
+    // 3. Water bodies and rivers
+    map.addLayer({
+      id: 'river-glow',
+      type: 'line',
+      source: 'butuanon-river',
+      layout: { visibility: 'none' },
+      paint: {
+        'line-color': '#3b82f6',
+        'line-width': [
+          'interpolate', ['linear'], ['zoom'],
+          11, 8, 13, 20, 15, 40, 17, 60
+        ],
+        'line-opacity': 0.25,
+        'line-blur': 8
+      }
+    });
+
+    map.addLayer({
+      id: 'river-line',
+      type: 'line',
+      source: 'butuanon-river',
+      layout: { visibility: 'none' },
+      paint: {
+        'line-color': '#1e40af',
+        'line-width': [
+          'interpolate', ['linear'], ['zoom'],
+          11, 3, 13, 8, 15, 16, 17, 32
+        ],
+        'line-opacity': 0.85
+      }
+    });
+
+    map.addLayer({
+      id: 'mapbox-water-bodies',
+      type: 'fill',
+      source: 'composite',
+      'source-layer': 'water',
+      layout: { visibility: 'none' },
+      paint: {
+        'fill-color': '#1e40af',
+        'fill-opacity': 0.5
+      }
+    });
+
+    map.addLayer({
+      id: 'mapbox-waterways-glow',
+      type: 'line',
+      source: 'composite',
+      'source-layer': 'waterway',
+      layout: { visibility: 'none' },
+      paint: {
+        'line-color': '#3b82f6',
+        'line-width': [
+          'interpolate', ['linear'], ['zoom'],
+          11, ['case', ['==', ['get', 'class'], 'river'], 10, 6],
+          13, ['case', ['==', ['get', 'class'], 'river'], 24, 12],
+          15, ['case', ['==', ['get', 'class'], 'river'], 44, 20],
+          17, ['case', ['==', ['get', 'class'], 'river'], 68, 32]
+        ],
+        'line-opacity': 0.25,
+        'line-blur': 8
+      }
+    });
+
+    map.addLayer({
+      id: 'mapbox-waterways',
+      type: 'line',
+      source: 'composite',
+      'source-layer': 'waterway',
+      layout: { visibility: 'none' },
+      paint: {
+        'line-color': '#1e40af',
+        'line-width': [
+          'interpolate', ['linear'], ['zoom'],
+          11, ['case', ['==', ['get', 'class'], 'river'], 4, 2],
+          13, ['case', ['==', ['get', 'class'], 'river'], 10, 4],
+          15, ['case', ['==', ['get', 'class'], 'river'], 18, 8],
+          17, ['case', ['==', ['get', 'class'], 'river'], 36, 14]
+        ],
+        'line-opacity': 0.85
+      }
+    });
+
+    // 4. Zoning layers
+    map.addLayer({
+      id: 'zones-fill',
+      type: 'fill',
+      source: 'zones',
+      paint: {
+        'fill-color': ['get', 'color'],
+        'fill-opacity': 0.5
+      }
+    });
+
+    map.addLayer({
+      id: 'zones-outline',
+      type: 'line',
+      source: 'zones',
+      paint: {
+        'line-color': '#ffffff',
+        'line-width': 2,
+        'line-opacity': 0.6
+      }
+    });
+
+    // 5. 3D Buildings (on top when enabled) - Fixed clipping
+    map.addLayer({
+      id: '3d-buildings',
+      source: 'composite',
+      'source-layer': 'building',
+      filter: ['==', 'extrude', 'true'],
+      type: 'fill-extrusion',
+      minzoom: 14,
+      layout: { visibility: 'none' },
+      paint: {
+        'fill-extrusion-color': [
+          'case',
+          ['boolean', ['feature-state', 'hover'], false],
+          '#38bdf8',
+          '#6b7280'
+        ],
+        'fill-extrusion-height': [
+          'interpolate', ['linear'], ['zoom'],
+          14, 0,
+          14.05, ['get', 'height']
+        ],
+        'fill-extrusion-base': [
+          'interpolate', ['linear'], ['zoom'],
+          14, 0,
+          14.05, ['coalesce', ['get', 'min_height'], 0]
+        ],
+        'fill-extrusion-opacity': 0.75,
+        'fill-extrusion-vertical-gradient': true
+      }
+    });
+
+    // - Jericho: Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    let searchMarker = null;
+
+    searchInput.addEventListener('input', async (e) => {
+      const query = e.target.value.trim();
+      
+      if (query.length < 3) {
+        searchResults.innerHTML = '';
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?` +
+          `proximity=123.93,10.33&` +
+          `bbox=123.85,10.25,124.00,10.40&` +
+          `types=poi,address,place&` +
+          `limit=8&` +
+          `country=PH&` +
+          `access_token=${mapboxgl.accessToken}`
+        );
+        
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+          searchResults.innerHTML = data.features.map(feature => {
+            const name = feature.text || feature.place_name;
+            const category = feature.properties?.category || '';
+            const address = feature.place_name;
+            
+            return `
+            <div class="search-result-item" data-lng="${feature.center[0]}" data-lat="${feature.center[1]}">
+              <div class="search-result-title">${name}${category ? ' · ' + category : ''}</div>
+              <div class="search-result-address">${address}</div>
+            </div>
+          `;
+          }).join('');
+
+          document.querySelectorAll('.search-result-item').forEach(item => {
+            item.addEventListener('click', () => {
+              const lng = parseFloat(item.dataset.lng);
+              const lat = parseFloat(item.dataset.lat);
+              
+              if (searchMarker) searchMarker.remove();
+              
+              searchMar
