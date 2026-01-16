@@ -564,11 +564,6 @@
   .compass-bearing{ font-family:'Courier New',monospace; min-width:40px; text-align:center; font-weight:600; }
   .compass-divider{ width:1px; height:20px; background:rgba(255,255,255,0.08); }
 
-  /* Debug panel styling */
-  .debug-toggle{ position:fixed; top:20px; right:20px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); color:#fff; padding:8px 10px; border-radius:8px; cursor:pointer; z-index:1003; }
-  .debug-panel{ position:fixed; top:64px; right:20px; background:rgba(10,10,10,0.85); border:1px solid rgba(255,255,255,0.06); padding:12px; border-radius:10px; color:#cbd5e1; font-size:12px; z-index:1002; max-width:260px; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
-  .debug-panel.hidden{ display:none; }
-  .debug-row{ display:flex; justify-content:space-between; margin-bottom:6px; }
 </style>
 </head>
 
@@ -584,14 +579,6 @@
   </div>
 </div>
 
-<!-- Debug toggle and panel -->
-<button class="debug-toggle" id="debugToggle">Debug</button>
-<div class="debug-panel hidden" id="debugPanel">
-  <div class="debug-row"><strong>Bearing</strong><span id="dbgBearing">0°</span></div>
-  <div class="debug-row"><strong>Zoom</strong><span id="dbgZoom">0</span></div>
-  <div class="debug-row"><strong>Center</strong><span id="dbgCenter">0,0</span></div>
-  <div class="debug-row"><strong>Layers</strong><span id="dbgLayers">—</span></div>
-</div>
 
 <div class="search-box">
   <input 
@@ -1623,48 +1610,26 @@
     }
   }
 
-    // ------------------ Compass & Debugging UI ------------------
-    // These provide a small compass readout and a debug panel for map state.
-    const compassBearingEl = document.getElementById('compassBearing');
-    const compassNorthEl = document.getElementById('compassNorth');
-    const debugToggleEl = document.getElementById('debugToggle');
-    const debugPanelEl = document.getElementById('debugPanel');
-    const dbgBearing = document.getElementById('dbgBearing');
-    const dbgZoom = document.getElementById('dbgZoom');
-    const dbgCenter = document.getElementById('dbgCenter');
-    const dbgLayers = document.getElementById('dbgLayers');
+// ------------------ Compass UI ------------------
+const compassBearingEl = document.getElementById('compassBearing');
+const compassNorthEl = document.getElementById('compassNorth');
 
-    function getCardinalDirectionSimple(bearing) {
-      const directions = ['N','NE','E','SE','S','SW','W','NW'];
-      const index = Math.round(bearing / 45) % 8;
-      return directions[index];
-    }
+function getCardinalDirectionSimple(bearing) {
+  const directions = ['N','NE','E','SE','S','SW','W','NW'];
+  const index = Math.round(bearing / 45) % 8;
+  return directions[index];
+}
 
-    function updateCompassAndDebug() {
-      const bearing = ((Math.round(map.getBearing()) % 360) + 360) % 360;
-      if (compassBearingEl) compassBearingEl.textContent = `${bearing}°`;
-      if (compassNorthEl) compassNorthEl.textContent = getCardinalDirectionSimple(bearing);
+function updateCompass() {
+  const bearing = ((Math.round(map.getBearing()) % 360) + 360) % 360;
+  if (compassBearingEl) compassBearingEl.textContent = `${bearing}°`;
+  if (compassNorthEl) compassNorthEl.textContent = getCardinalDirectionSimple(bearing);
+}
 
-      if (dbgBearing) dbgBearing.textContent = `${bearing}°`;
-      if (dbgZoom) dbgZoom.textContent = map.getZoom().toFixed(2);
-      if (dbgCenter) {
-        const c = map.getCenter();
-        dbgCenter.textContent = `${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`;
-      }
-      if (dbgLayers) {
-        const active = Object.keys(layerStates).filter(k => layerStates[k]).join(', ') || 'none';
-        dbgLayers.textContent = active;
-      }
-    }
+map.on('rotate', updateCompass);
+map.on('move', updateCompass);
+updateCompass();
 
-    map.on('rotate', updateCompassAndDebug);
-    map.on('move', updateCompassAndDebug);
-    // initial update
-    updateCompassAndDebug();
-
-    debugToggleEl.addEventListener('click', () => {
-      debugPanelEl.classList.toggle('hidden');
-    });
 
 
   // ==================== AI CHATBOT FUNCTIONALITY ====================
