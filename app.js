@@ -816,8 +816,6 @@ map.on('load', () => {
         const visibility = layerStates.river ? 'visible' : 'none';
 
         // - Jericho: Toggle all water-related layers together
-        map.setLayoutProperty('river-glow', 'visibility', visibility);
-        map.setLayoutProperty('river-line', 'visibility', visibility);
         map.setLayoutProperty('mapbox-waterways', 'visibility', visibility);
         map.setLayoutProperty('mapbox-waterways-glow', 'visibility', visibility);
         map.setLayoutProperty('mapbox-water-bodies', 'visibility', visibility);
@@ -974,8 +972,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleWaterLayer: (show) => {
             layerStates.river = show;
             const visibility = show ? 'visible' : 'none';
-            map.setLayoutProperty('river-glow', 'visibility', visibility);
-            map.setLayoutProperty('river-line', 'visibility', visibility);
             map.setLayoutProperty('mapbox-waterways', 'visibility', visibility);
             map.setLayoutProperty('mapbox-waterways-glow', 'visibility', visibility);
             map.setLayoutProperty('mapbox-water-bodies', 'visibility', visibility);
