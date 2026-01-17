@@ -1,6 +1,7 @@
 <!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8" />
   <title>ZoneGuide – Mandaue Flood Risk Analysis</title>
@@ -27,13 +28,8 @@
   </div>
 
   <div class="search-box">
-    <input
-      type="text"
-      id="searchInput"
-      class="search-input"
-      placeholder="Search for address, building, or place in Mandaue..."
-      autocomplete="off"
-    />
+    <input type="text" id="searchInput" class="search-input"
+      placeholder="Search for address, building, or place in Mandaue..." autocomplete="off" />
     <div id="searchResults" class="search-results"></div>
   </div>
 
@@ -83,15 +79,64 @@
   </div>
 
   <!-- AI Chatbot Interface -->
-  <button class="chatbot-button" id="chatbotToggle" aria-label="Open Zone Bot">
-    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2 22l5.71-.97C9 21.64 10.46 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.38 0-2.68-.31-3.85-.85l-.27-.13-2.82.48.48-2.82-.13-.27C4.31 14.68 4 13.38 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8zm-3-7h2v2H9v-2zm4 0h2v2h-2v-2z"/>
+  <button class="chatbot-button" id="chatbotToggle" aria-label="Open BelaBot">
+    <svg viewBox="0 0 100 100">
+      <!-- Ears -->
+      <path d="M30,40 Q20,5 35,5 Q50,5 45,40" fill="#e0e0e0" />
+      <path d="M70,40 Q80,5 65,5 Q50,5 55,40" fill="#e0e0e0" />
+
+      <!-- Head -->
+      <circle cx="50" cy="60" r="30" fill="#ffffff" />
+
+      <!-- Visor -->
+      <rect x="28" y="52" width="44" height="20" rx="8" fill="#111" />
+
+      <!-- Eyes with glow animation -->
+      <circle cx="42" cy="62" r="4" fill="#ff3333" class="eye-glow" />
+      <circle cx="58" cy="62" r="4" fill="#ff3333" class="eye-glow" />
+
+      <!-- Hat -->
+      <path d="M25,45 Q50,5 75,45" fill="#ffc107" stroke="none" />
+      <path d="M20,45 L80,45 Q82,50 78,50 L22,50 Q18,50 20,45" fill="#ffc107" />
+      <path d="M50,15 L50,45" stroke="#e0a800" stroke-width="2" />
+
+      <!-- BB Logo on hat -->
+      <text x="50" y="38" class="hat-logo">BB</text>
+
+      <!-- Smile -->
+      <path d="M28,80 Q50,92 72,80" stroke="#ffc107" stroke-width="4" stroke-linecap="round" fill="none" />
     </svg>
   </button>
 
   <div class="chatbot-window" id="chatbotWindow">
     <div class="chatbot-header">
-      <h3>Zone Bot</h3>
+      <svg viewBox="0 0 100 100" class="belabot-header-icon">
+        <!-- Ears -->
+        <path d="M30,40 Q20,5 35,5 Q50,5 45,40" fill="#e0e0e0" />
+        <path d="M70,40 Q80,5 65,5 Q50,5 55,40" fill="#e0e0e0" />
+
+        <!-- Head -->
+        <circle cx="50" cy="60" r="30" fill="#ffffff" />
+
+        <!-- Visor -->
+        <rect x="28" y="52" width="44" height="20" rx="8" fill="#111" />
+
+        <!-- Eyes with glow animation -->
+        <circle cx="42" cy="62" r="4" fill="#ff3333" class="eye-glow" />
+        <circle cx="58" cy="62" r="4" fill="#ff3333" class="eye-glow" />
+
+        <!-- Hat -->
+        <path d="M25,45 Q50,5 75,45" fill="#ffc107" stroke="none" />
+        <path d="M20,45 L80,45 Q82,50 78,50 L22,50 Q18,50 20,45" fill="#ffc107" />
+        <path d="M50,15 L50,45" stroke="#e0a800" stroke-width="2" />
+
+        <!-- BB Logo on hat -->
+        <text x="50" y="38" class="hat-logo">BB</text>
+
+        <!-- Smile -->
+        <path d="M28,80 Q50,92 72,80" stroke="#ffc107" stroke-width="4" stroke-linecap="round" fill="none" />
+      </svg>
+      <h3>BelaBot</h3>
       <button class="close-btn" id="chatbotClose" aria-label="Close">&times;</button>
     </div>
 
@@ -102,13 +147,8 @@
     </div>
 
     <div class="chatbot-input-area">
-      <input
-        type="text"
-        class="chatbot-input"
-        id="chatbotInput"
-        placeholder="Ask about flood zones, zoning, or map features..."
-        autocomplete="off"
-      />
+      <input type="text" class="chatbot-input" id="chatbotInput"
+        placeholder="Ask about flood zones, zoning, or map features..." autocomplete="off" />
       <button class="chatbot-send-btn" id="chatbotSend">Send</button>
     </div>
   </div>
@@ -116,4 +156,5 @@
   <!-- Your JS -->
   <script src="./app.js"></script>
 </body>
+
 </html>
