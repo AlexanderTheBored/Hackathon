@@ -19,7 +19,7 @@ ZoneGuide is a Mapbox GL-based web application for visualizing zoning districts 
 
 ## Getting Started and How It Works
 
-ZoneGuide is a static, front-end Mapbox GL app that runs entirely in the browser. The JavaScript file initializes the map, registers GeoJSON sources for zoning and flood risk, and wires up UI controls (filters, toggles, search, and chatbot). The app does not require a build step.
+ZoneGuide is a static, front-end Mapbox GL app that runs entirely in the browser. The JavaScript file initializes the map, registers GeoJSON sources for zoning and flood risk, and wires up UI controls (filters, toggles, search, and chatbot). The app does not require a build step. The Mapbox access token in `app.js` is currently configured and working for our team’s use.
 
 ### Libraries and Services Used
 
@@ -28,7 +28,9 @@ ZoneGuide is a static, front-end Mapbox GL app that runs entirely in the browser
 - **Custom GeoJSON** embedded in `app.js` for zoning and flood-risk datasets.
 - **BelaBot backend** (custom API) for chatbot responses and map-control tools.
 
-### Running Locally
+### Running Locally (Optional)
+
+If you need to run the app locally with your own token, follow these steps:
 
 1. Obtain a Mapbox access token.
 2. Update `mapboxgl.accessToken` in `app.js` with your token.
