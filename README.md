@@ -57,3 +57,4 @@ The chatbot expects a backend endpoint for AI responses. Update the `BACKEND_URL
 ## Data Notes
 
 The zoning and flood risk datasets are embedded in `app.js` for prototyping purposes. For production use, consider moving them to external GeoJSON files or an API.
+
