@@ -45,15 +45,15 @@
         </svg>
       </span>
     </h3>
-    
+
     <p class="control-help-text">Select zones by permitted project type. Check flood risk below.</p>
-    
+
     <!-- Visibility Toggle -->
     <label class="filter-visibility-toggle">
       <span>Show Filtered Zones Only</span>
       <input type="checkbox" id="filterVisibilityToggle" checked>
     </label>
-    
+
     <!-- Filters Container -->
     <div class="filters-container" id="filtersContainer">
       <button class="filter-btn" data-filter="all">
@@ -73,7 +73,7 @@
 
   <!-- Right Sidebar Container - Manages all right-side panels -->
   <div class="right-sidebar">
-    
+
     <!-- Map Layers Panel -->
     <section class="panel panel-map-layers">
       <h3>
@@ -87,70 +87,85 @@
           </svg>
         </span>
       </h3>
-    <h3>
-      Map Layers
-      <span class="tooltip-icon"
-        data-tooltip="Toggle visualization layers to analyze terrain elevation, buildings, and water features">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="16" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-        </svg>
-      </span>
-    </h3>
+      <h3>
+        Map Layers
+        <span class="tooltip-icon"
+          data-tooltip="Toggle visualization layers to analyze terrain elevation, buildings, and water features">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        </span>
+      </h3>
 
-    <!-- Terrain & Structures Section -->
-    <div class="layer-section">
-      <div class="layer-section-label">Terrain & Structures</div>
-      <div class="layer-toggle-row">
-        <button class="layer-toggle" id="terrainBtn" data-layer="terrain" title="Toggle 3D terrain">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/></svg>
-          <span>3D Terrain</span>
-        </button>
+      <!-- Terrain & Structures Section -->
+      <div class="layer-section">
+        <div class="layer-section-label">Terrain & Structures</div>
+        <div class="layer-toggle-row">
+          <button class="layer-toggle" id="terrainBtn" data-layer="terrain" title="Toggle 3D terrain">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
+            </svg>
+            <span>3D Terrain</span>
+          </button>
+        </div>
+        <div class="layer-toggle-row">
+          <button class="layer-toggle" id="buildingsBtn" data-layer="buildings" title="Toggle 3D buildings">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
+            </svg>
+            <span>3D Buildings</span>
+          </button>
+        </div>
       </div>
-      <div class="layer-toggle-row">
-        <button class="layer-toggle" id="buildingsBtn" data-layer="buildings" title="Toggle 3D buildings">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
-          <span>3D Buildings</span>
-        </button>
-      </div>
-    </div>
 
-    <!-- Risk Layers Section -->
-    <div class="layer-section">
-      <div class="layer-section-label">Risk Layers</div>
-      <div class="layer-toggle-row">
-        <button class="layer-toggle" id="floodBtn" data-layer="flood" title="Toggle flood risk zones">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></svg>
-          <span>Flood Risk</span>
-        </button>
+      <!-- Risk Layers Section -->
+      <div class="layer-section">
+        <div class="layer-section-label">Risk Layers</div>
+        <div class="layer-toggle-row">
+          <button class="layer-toggle" id="floodBtn" data-layer="flood" title="Toggle flood risk zones">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" />
+            </svg>
+            <span>Flood Risk</span>
+          </button>
+        </div>
       </div>
-    </div>
 
-    <!-- Reference Layers Section -->
-    <div class="layer-section">
-      <div class="layer-section-label">Reference Layers</div>
-      <div class="layer-toggle-row">
-        <button class="layer-toggle" id="riverBtn" data-layer="river" title="Toggle water bodies">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 6c0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4S1 3.79 1 6zm16 0c0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4-4 1.79-4 4zm-8 12c0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4-4 1.79-4 4zm8-8c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-          <span>Water Bodies</span>
-        </button>
+      <!-- Reference Layers Section -->
+      <div class="layer-section">
+        <div class="layer-section-label">Reference Layers</div>
+        <div class="layer-toggle-row">
+          <button class="layer-toggle" id="riverBtn" data-layer="river" title="Toggle water bodies">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-0.9-2-2-2zM1 6c0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4S1 3.79 1 6zm16 0c0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4-4 1.79-4 4zm-8 12c0 2.21 1.79 4 4 4s4-1.79 4-4-1.79-4-4-4-4 1.79-4 4zm8-8c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z" />
+            </svg>
+            <span>Water Bodies</span>
+          </button>
+        </div>
+        <div class="layer-toggle-row">
+          <button class="layer-toggle" id="contourBtn" data-layer="contour" title="Toggle elevation lines">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path
+                d="M3 9h4V5H3v4zm0 5h4v-4H3v4zm5 0h4v-4H8v4zm5 0h4v-4h-4v4zm-10 5h4v-4H3v4zm5 0h4v-4H8v4zm5 0h4v-4h-4v4zm5-14v4h4V5h-4zm0 9h4v-4h-4v4z" />
+            </svg>
+            <span>Contours</span>
+          </button>
+        </div>
       </div>
-      <div class="layer-toggle-row">
-        <button class="layer-toggle" id="contourBtn" data-layer="contour" title="Toggle elevation lines">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9h4V5H3v4zm0 5h4v-4H3v4zm5 0h4v-4H8v4zm5 0h4v-4h-4v4zm-10 5h4v-4H3v4zm5 0h4v-4H8v4zm5 0h4v-4h-4v4zm5-14v4h4V5h-4zm0 9h4v-4h-4v4z"/></svg>
-          <span>Contours</span>
-        </button>
-      </div>
-    </div>
 
-    <div class="info-box">
-      <strong>Data Sources:</strong><br>
-      <small>MCDRRMO 2022–2025<br>Flood incidents</small><br><br>
-      <strong>Last Major Event:</strong><br>
-      <small>Nov 2025: 29,000+ evacuated</small><br><br>
-      <em>Layers combine zoning regulations with historical flood risk. Use together for complete risk assessment.</em>
-    </div>
+      <div class="info-box">
+        <strong>Data Sources:</strong><br>
+        <small>MCDRRMO 2022–2025<br>Flood incidents</small><br><br>
+        <strong>Last Major Event:</strong><br>
+        <small>Nov 2025: 29,000+ evacuated</small><br><br>
+        <em>Layers combine zoning regulations with historical flood risk. Use together for complete risk
+          assessment.</em>
+      </div>
     </section>
 
     <!-- Data Sources Panel -->
@@ -189,7 +204,7 @@
       <h4>
         Zoning Districts
         <span class="tooltip-icon"
-          data-tooltip="Color-coded zones showing permitted land use types and development regulations">
+          data-tooltip="Official Mandaue City Zoning Map 2019-2029 - Color-coded zones showing permitted land use types">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -197,10 +212,57 @@
           </svg>
         </span>
       </h4>
-      <div class="legend-item"><span class="color-box" style="background:#C4D61F"></span>Residential (R-1)</div>
-      <div class="legend-item"><span class="color-box" style="background:#D40FA6"></span>Industrial (I-2)</div>
-      <div class="legend-item"><span class="color-box" style="background:#31969C"></span>Commercial (C-2)</div>
-      <div class="legend-item"><span class="color-box" style="background:#88A331"></span>Mixed-Use (MU-1)</div>
+
+      <!-- Commercial Zones -->
+      <div
+        style="font-size:9px;font-weight:700;color:#64748b;margin:8px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;">
+        Commercial</div>
+      <div class="legend-item"><span class="color-box" style="background:#C53D3F"></span>C-I</div>
+      <div class="legend-item"><span class="color-box" style="background:#B42F2F"></span>C-II</div>
+      <div class="legend-item"><span class="color-box" style="background:#8F1D23"></span>C-III</div>
+      <div class="legend-item"><span class="color-box" style="background:#E69CE1"></span>City Core Commercial</div>
+
+      <!-- Industrial Zones -->
+      <div
+        style="font-size:9px;font-weight:700;color:#64748b;margin:8px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;">
+        Industrial</div>
+      <div class="legend-item"><span class="color-box" style="background:#D40FA6"></span>I-II</div>
+      <div class="legend-item"><span class="color-box" style="background:#980A6D"></span>I-III</div>
+
+      <!-- Residential Zones -->
+      <div
+        style="font-size:9px;font-weight:700;color:#64748b;margin:8px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;">
+        Residential</div>
+      <div class="legend-item"><span class="color-box" style="background:#C4D61F"></span>Light Density</div>
+      <div class="legend-item"><span class="color-box" style="background:#BBAD43"></span>Medium Density</div>
+      <div class="legend-item"><span class="color-box" style="background:#C6983B"></span>High Density</div>
+      <div class="legend-item"><span class="color-box" style="background:#90633A"></span>Socialized Housing</div>
+
+      <!-- Environmental Zones -->
+      <div
+        style="font-size:9px;font-weight:700;color:#64748b;margin:8px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;">
+        Environmental</div>
+      <div class="legend-item"><span class="color-box" style="background:#88A331"></span>Parks & Open Spaces</div>
+      <div class="legend-item"><span class="color-box" style="background:#A8D52F"></span>Cemeteries</div>
+      <div class="legend-item"><span class="color-box" style="background:#256623"></span>Mangrove Areas</div>
+      <div class="legend-item"><span class="color-box" style="background:#10850F"></span>50m Green Corridor</div>
+      <div class="legend-item"><span class="color-box" style="background:#31969C"></span>Aquaculture</div>
+
+      <!-- Institutional Zones -->
+      <div
+        style="font-size:9px;font-weight:700;color:#64748b;margin:8px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;">
+        Institutional</div>
+      <div class="legend-item"><span class="color-box" style="background:#1418BC"></span>Government</div>
+      <div class="legend-item"><span class="color-box" style="background:#7745A8"></span>Historical Strip</div>
+
+      <!-- Special Zones -->
+      <div
+        style="font-size:9px;font-weight:700;color:#64748b;margin:8px 0 4px 0;text-transform:uppercase;letter-spacing:0.5px;">
+        Special Zones</div>
+      <div class="legend-item"><span class="color-box" style="background:#6B7280"></span>PEZA</div>
+      <div class="legend-item"><span class="color-box" style="background:#4B5563"></span>PUD</div>
+      <div class="legend-item"><span class="color-box" style="background:#9CA3AF"></span>Recreation & Tourism</div>
+      <div class="legend-item"><span class="color-box" style="background:#111111"></span>Utilities</div>
 
       <h4 style="margin-top:14px;">
         Flood Risk Zones
