@@ -1,5 +1,67 @@
 mapboxgl.accessToken = 'pk.eyJ1IjoiZmxhcmVpdW0iLCJhIjoiY21qaXF4eDRyMTQ5ZjNlcTF2c3Ntd3NzOSJ9.jb1Fbw5JUyvBJ2czkccBXA';
 
+// ===== OFFICIAL MANDAUE CITY ZONING MAP 2019–2029 =====
+// Authoritative zone color palette per official municipal zoning ordinance
+const ZONE_STYLES = {
+  AQUA:   { label: "Aquaculture",                         color: "#31969C" },
+  CCC:    { label: "City Core Commercial",                color: "#E69CE1" },
+  POS:    { label: "Parks and Open Spaces",               color: "#88A331" },
+  CEM:    { label: "Cemeteries",                          color: "#A8D52F" },
+  MANG:   { label: "Mangrove Areas",                      color: "#256623" },
+  GC50:   { label: "50 Meter Green Corridor (Butuanon)",  color: "#10850F" },
+  HIST:   { label: "Historical Strip",                    color: "#7745A8" },
+  GOV:    { label: "Government (Institutional)",          color: "#1418BC" },
+
+  "C-I":  { label: "General Commercial C-I",              color: "#C53D3F" },
+  "C-II": { label: "General Commercial C-II",             color: "#B42F2F" },
+  "C-III":{ label: "General Commercial C-III",            color: "#8F1D23" },
+
+  "I-II": { label: "General Industrial I-II",             color: "#D40FA6" },
+  "I-III":{ label: "General Industrial I-III",            color: "#980A6D" },
+
+  HDR:    { label: "High Density Residential",            color: "#C6983B" },
+  LDR:    { label: "Light Density Residential",           color: "#C4D61F" },
+  MDR:    { label: "Medium Density Residential",          color: "#BBAD43" },
+  SH:     { label: "Socialized Housing",                  color: "#90633A" },
+
+  PEZA:   { label: "PEZA",                                 color: "#6B7280" },
+  PUD:    { label: "PUD",                                  color: "#4B5563" },
+  RTD:    { label: "Recreation and Tourism Devt",         color: "#9CA3AF" },
+  UTIL:   { label: "Utilities",                           color: "#111111" }
+};
+
+/**
+ * Color transformation utility: apply translucency while preserving saturation
+ * Converts hex colors to rgba with full saturation and opacity control
+ *
+ * @param {string} hex - Hex color code (e.g., "#C53D3F")
+ * @param {number} alpha - Opacity for map layer (0.6 = 60% opaque, 1.0 = fully opaque)
+ * @returns {string} rgba() color string suitable for Mapbox fillColor
+ */
+function hexToRgbaTranslucent(hex, alpha = 0.6) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/**
+ * Derived zoning colors for map rendering
+ * Fully opaque (100%) with full saturation
+ * to official Mandaue City zoning palette
+ */
+const MAP_ZONE_COLORS = Object.fromEntries(
+  Object.entries(ZONE_STYLES).map(([key, zone]) => [
+    key,
+    {
+      label: zone.label,
+      originalColor: zone.color,
+      mapColor: hexToRgbaTranslucent(zone.color, 1.0)
+    }
+  ])
+);
+
 // - Jericho: Expanded and corrected zoning data with more realistic boundaries
 // Added Mixed-Use zone and adjusted polygon coordinates for better accuracy
 const zoningData = {
@@ -10,7 +72,7 @@ const zoningData = {
             properties: {
                 name: "Cabancalan–Canduman Residential District",
                 zone: "Residential (R-1)",
-                color: "#facc15",
+                color: "#C4D61F",
                 allows_house: true,
                 allows_mall: false,
                 allows_factory: false,
@@ -38,7 +100,7 @@ const zoningData = {
             properties: {
                 name: "A.S. Fortuna Commercial Corridor",
                 zone: "Commercial (C-2)",
-                color: "#3b82f6",
+                color: "#31969C",
                 allows_house: true,
                 allows_mall: true,
                 allows_factory: false,
@@ -65,7 +127,7 @@ const zoningData = {
             properties: {
                 name: "Subangdaku–Tingub Industrial Zone",
                 zone: "Industrial (I-2)",
-                color: "#a855f7",
+                color: "#D40FA6",
                 allows_house: false,
                 allows_mall: true,
                 allows_factory: true,
@@ -94,7 +156,7 @@ const zoningData = {
             properties: {
                 name: "Banilad Mixed-Use Development",
                 zone: "Mixed-Use (MU-1)",
-                color: "#10b981",
+                color: "#88A331",
                 allows_house: true,
                 allows_mall: true,
                 allows_factory: false,
@@ -120,7 +182,7 @@ const zoningData = {
             properties: {
                 name: "Paknaan–Umapad Residential",
                 zone: "Residential (R-1)",
-                color: "#facc15",
+                color: "#C4D61F",
                 allows_house: true,
                 allows_mall: false,
                 allows_factory: false,
@@ -147,7 +209,7 @@ const zoningData = {
             properties: {
                 name: "Maguikay–Tabok Commercial Strip",
                 zone: "Commercial (C-2)",
-                color: "#3b82f6",
+                color: "#31969C",
                 allows_house: true,
                 allows_mall: true,
                 allows_factory: false,
@@ -443,10 +505,10 @@ map.on('load', () => {
             'fill-color': [
                 'match',
                 ['get', 'risk'],
-                'critical', '#b91c1c',
-                'high', '#dc2626',
-                'moderate', '#f59e0b',
-                'low', '#fbbf24',
+                'critical', '#d32f2f',
+                'high', '#ff7043',
+                'moderate', '#ffb74d',
+                'low', '#fff59d',
                 '#888888'
             ],
             'fill-opacity': 0.5
@@ -462,10 +524,10 @@ map.on('load', () => {
             'line-color': [
                 'match',
                 ['get', 'risk'],
-                'critical', '#b91c1c',
-                'high', '#dc2626',
-                'moderate', '#f59e0b',
-                'low', '#fbbf24',
+                'critical', '#d32f2f',
+                'high', '#ff7043',
+                'moderate', '#ffb74d',
+                'low', '#fff59d',
                 '#888888'
             ],
             'line-width': 1.5,
@@ -530,9 +592,15 @@ map.on('load', () => {
         id: 'zones-fill',
         type: 'fill',
         source: 'zones',
+        layout: { visibility: 'none' },
         paint: {
             'fill-color': ['get', 'color'],
-            'fill-opacity': 0.5
+            'fill-opacity': [
+                'case',
+                ['boolean', ['feature-state', 'hover'], false],
+                0.65,
+                0.45
+            ]
         }
     });
 
@@ -540,10 +608,26 @@ map.on('load', () => {
         id: 'zones-outline',
         type: 'line',
         source: 'zones',
+        layout: { visibility: 'none' },
         paint: {
-            'line-color': '#ffffff',
-            'line-width': 2,
-            'line-opacity': 0.6
+            'line-color': [
+                'case',
+                ['boolean', ['feature-state', 'hover'], false],
+                '#ffffff',
+                '#e5e7eb'
+            ],
+            'line-width': [
+                'case',
+                ['boolean', ['feature-state', 'hover'], false],
+                2.5,
+                1.5
+            ],
+            'line-opacity': [
+                'case',
+                ['boolean', ['feature-state', 'hover'], false],
+                1,
+                0.5
+            ]
         }
     });
 
@@ -647,12 +731,36 @@ map.on('load', () => {
         }
     });
 
-    // - Jericho: Cursor interaction for zones
-    map.on('mouseenter', 'zones-fill', () => map.getCanvas().style.cursor = 'pointer');
-    map.on('mouseleave', 'zones-fill', () => map.getCanvas().style.cursor = '');
-
-    // - Jericho: Fit to zones on initial load
-    map.fitBounds(computeBoundsFromGeoJSON(currentData), { padding: 80, duration: 0 });
+    // - Jericho: Cursor interaction and hover state for zones
+    let hoveredZoneId = null;
+    
+    map.on('mouseenter', 'zones-fill', (e) => {
+        map.getCanvas().style.cursor = 'pointer';
+        if (e.features.length > 0) {
+            if (hoveredZoneId !== null) {
+                map.setFeatureState(
+                    { source: 'zones', id: hoveredZoneId },
+                    { hover: false }
+                );
+            }
+            hoveredZoneId = e.features[0].id;
+            map.setFeatureState(
+                { source: 'zones', id: hoveredZoneId },
+                { hover: true }
+            );
+        }
+    });
+    
+    map.on('mouseleave', 'zones-fill', () => {
+        map.getCanvas().style.cursor = '';
+        if (hoveredZoneId !== null) {
+            map.setFeatureState(
+                { source: 'zones', id: hoveredZoneId },
+                { hover: false }
+            );
+        }
+        hoveredZoneId = null;
+    });
 
     // - Jericho: Enhanced popup for zone clicks
     map.on('click', 'zones-fill', (e) => {
@@ -665,26 +773,39 @@ map.on('load', () => {
         const notes = p.notes ?? "";
         const floodRisk = p.floodRisk ?? "unknown";
 
-        const riskColor = floodRisk === 'critical' ? '#b91c1c' :
-            floodRisk === 'high' ? '#dc2626' :
-                floodRisk === 'moderate' ? '#f59e0b' : '#22c55e';
+        const riskColor = floodRisk === 'critical' ? '#d32f2f' :
+            floodRisk === 'high' ? '#ff7043' :
+                floodRisk === 'moderate' ? '#ffb74d' : '#fff59d';
         const riskText = floodRisk === 'critical' ? 'CRITICAL RISK' :
             floodRisk === 'high' ? 'HIGH RISK' :
                 floodRisk === 'moderate' ? 'MODERATE RISK' : 'LOW RISK';
 
-        new mapboxgl.Popup({ closeButton: true, closeOnClick: true })
+        const allowedUses = [];
+        if (p.allows_house) allowedUses.push('Residential');
+        if (p.allows_mall) allowedUses.push('Commercial');
+        if (p.allows_factory) allowedUses.push('Industrial');
+        const usageText = allowedUses.length > 0 ? allowedUses.join(', ') : 'Restricted';
+
+        new mapboxgl.Popup({ closeButton: true, closeOnClick: true, maxWidth: '300px' })
             .setLngLat(e.lngLat)
             .setHTML(`
           <div style="color:#111; font-family:system-ui,sans-serif; font-size:13px;">
-            <strong style="font-size:15px;">${name}</strong><br>
-            <span style="color:#666;">Zone: ${zone}</span><br>
-            <div style="margin:8px 0; padding:8px; background:${riskColor}; color:#fff; border-radius:6px; text-align:center; font-weight:bold; font-size:11px;">
+            <strong style="font-size:15px; color:#1f2937;">${name}</strong><br>
+            <div style="margin:8px 0 12px 0; padding:8px 0; border-bottom:1px solid #e5e7eb;">
+              <small style="color:#666; display:block; font-weight:600;">ZONE TYPE</small>
+              <small style="color:#374151; font-weight:500;">${zone}</small>
+            </div>
+            <div style="margin:0 0 12px 0; padding:8px; background:${riskColor}; color:#fff; border-radius:6px; text-align:center; font-weight:bold; font-size:11px;">
               FLOOD RISK: ${riskText}
             </div>
-            <small style="color:#666;">${notes}</small>
-            ${p.population ? `<br><small style="color:#888;">Population: ${p.population}</small>` : ''}
-            ${p.businesses ? `<br><small style="color:#888;">Businesses: ${p.businesses}</small>` : ''}
-            ${p.facilities ? `<br><small style="color:#888;">Facilities: ${p.facilities}</small>` : ''}
+            <div style="margin:0 0 12px 0; padding:8px 0; border-bottom:1px solid #e5e7eb;">
+              <small style="color:#666; display:block; font-weight:600;">PERMITTED USES</small>
+              <small style="color:#374151;">${usageText}</small>
+            </div>
+            <small style="color:#6b7280; line-height:1.5;">${notes}</small>
+            ${p.population ? `<br><small style="color:#6b7280; margin-top:8px; display:block;"><strong>Population:</strong> ${p.population}</small>` : ''}
+            ${p.businesses ? `<small style="color:#6b7280; display:block;"><strong>Businesses:</strong> ${p.businesses}</small>` : ''}
+            ${p.facilities ? `<small style="color:#6b7280; display:block;"><strong>Facilities:</strong> ${p.facilities}</small>` : ''}
           </div>
         `)
             .addTo(map);
@@ -696,9 +817,9 @@ map.on('load', () => {
         if (!f) return;
 
         const risk = f.properties.risk;
-        const riskColor = risk === 'critical' ? '#b91c1c' :
-            risk === 'high' ? '#dc2626' :
-                risk === 'moderate' ? '#f59e0b' : '#fbbf24';
+        const riskColor = risk === 'critical' ? '#d32f2f' :
+            risk === 'high' ? '#ff7043' :
+                risk === 'moderate' ? '#ffb74d' : '#fff59d';
         const riskLabel = risk === 'critical' ? 'CRITICAL' :
             risk === 'high' ? 'HIGH' :
                 risk === 'moderate' ? 'MODERATE' : 'LOW';
@@ -736,11 +857,6 @@ map.on('load', () => {
 
     map.on('mouseenter', 'flood-risk-fill', () => map.getCanvas().style.cursor = 'pointer');
     map.on('mouseleave', 'flood-risk-fill', () => map.getCanvas().style.cursor = '');
-
-    // - Jericho: Filter buttons for zone types
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', () => setFilter(btn.dataset.filter, btn));
-    });
 
     // - Jericho: Toggle button handlers with proper state management
     // Each toggle properly manages its layer visibility and camera position
@@ -858,35 +974,94 @@ map.on('load', () => {
             this.classList.remove('active');
         }
     });
+
+    // Reset view button
+    document.getElementById('resetViewBtn').addEventListener('click', function () {
+        map.flyTo({
+            center: [123.93, 10.33],
+            zoom: 12.5,
+            pitch: 0,
+            bearing: 0,
+            duration: 1000
+        });
+    });
 });
 
-// - Jericho: Filter function with proper bounds fitting
+// ==================== ZONE FILTER VISIBILITY TOGGLE ====================
+// Track current filter state
+let currentFilterType = null;
+let hideUnfiltered = true;
+
+// Filter visibility toggle handler
+document.getElementById('filterVisibilityToggle').addEventListener('change', function (e) {
+    hideUnfiltered = e.target.checked;
+    applyCurrentFilter();
+});
+
+// Updated filter function with visibility toggle
 function setFilter(type, btn) {
+    currentFilterType = type;
+
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    if (type === 'all') {
+    applyCurrentFilter();
+}
+
+function applyCurrentFilter() {
+    if (currentFilterType === null) {
+        // Hide all zones when nothing is selected
+        map.setLayoutProperty('zones-fill', 'visibility', 'none');
+        map.setLayoutProperty('zones-outline', 'visibility', 'none');
+        return;
+    }
+
+    if (currentFilterType === 'all') {
+        // Show all zones when "View All" is selected
         map.setFilter('zones-fill', null);
         map.setFilter('zones-outline', null);
+        map.setLayoutProperty('zones-fill', 'visibility', 'visible');
+        map.setLayoutProperty('zones-outline', 'visibility', 'visible');
         map.fitBounds(computeBoundsFromGeoJSON(currentData), { padding: 80, duration: 450 });
         return;
     }
 
-    const key = `allows_${type}`;
+    const key = `allows_${currentFilterType}`;
     const filterExpr = ['==', ['get', key], true];
 
-    map.setFilter('zones-fill', filterExpr);
-    map.setFilter('zones-outline', filterExpr);
+    if (hideUnfiltered) {
+        // Hide zones that don't match the filter
+        map.setFilter('zones-fill', filterExpr);
+        map.setFilter('zones-outline', filterExpr);
+    } else {
+        // Show all zones but maintain filter for highlighting
+        map.setFilter('zones-fill', null);
+        map.setFilter('zones-outline', null);
+    }
 
+    // Show the zones layer when filtered
+    map.setLayoutProperty('zones-fill', 'visibility', 'visible');
+    map.setLayoutProperty('zones-outline', 'visibility', 'visible');
+
+    // Zoom to filtered zones
     const filtered = {
         type: "FeatureCollection",
-        features: currentData.features.filter(f => f.properties && f.properties[key] === true)
+        features: currentData.features.filter(
+            f => f.properties && f.properties[key] === true
+        )
     };
 
     if (filtered.features.length) {
         map.fitBounds(computeBoundsFromGeoJSON(filtered), { padding: 100, duration: 450 });
     }
 }
+
+// Update the existing filter button event listeners
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => setFilter(btn.dataset.filter, btn));
+});
+
+// =====================================================================
 
 // ------------------ Compass UI ------------------
 const compassBearingEl = document.getElementById('compassBearing');
