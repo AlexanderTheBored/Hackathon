@@ -1,237 +1,432 @@
 mapboxgl.accessToken = 'pk.eyJ1IjoiZmxhcmVpdW0iLCJhIjoiY21qaXF4eDRyMTQ5ZjNlcTF2c3Ntd3NzOSJ9.jb1Fbw5JUyvBJ2czkccBXA';
+// Last updated: 2026-01-23T00:17:00 - All zone color mappings complete
 
 // ===== OFFICIAL MANDAUE CITY ZONING MAP 2019–2029 =====
-// Authoritative zone color palette per official municipal zoning ordinance
-const ZONE_STYLES = {
-  AQUA:   { label: "Aquaculture",                         color: "#31969C" },
-  CCC:    { label: "City Core Commercial",                color: "#E69CE1" },
-  POS:    { label: "Parks and Open Spaces",               color: "#88A331" },
-  CEM:    { label: "Cemeteries",                          color: "#A8D52F" },
-  MANG:   { label: "Mangrove Areas",                      color: "#256623" },
-  GC50:   { label: "50 Meter Green Corridor (Butuanon)",  color: "#10850F" },
-  HIST:   { label: "Historical Strip",                    color: "#7745A8" },
-  GOV:    { label: "Government (Institutional)",          color: "#1418BC" },
+// Authoritative zone colors per official municipal zoning ordinance
+const OFFICIAL_ZONE_COLORS = {
+    // Commercial Zones
+    "C-I": {
+        color: "#C53D3F",
+        label: "General Commercial C-I",
+        allows_house: true,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Primary commercial zone with mixed-use development"
+    },
+    "C-II": {
+        color: "#B42F2F",
+        label: "General Commercial C-II",
+        allows_house: true,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Secondary commercial zone with residential integration"
+    },
+    "C-III": {
+        color: "#8F1D23",
+        label: "General Commercial C-III",
+        allows_house: true,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Tertiary commercial zone"
+    },
+    "CCC": {
+        color: "#E69CE1",
+        label: "City Core Commercial",
+        allows_house: false,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Central business district with high-rise commercial development"
+    },
+    // Full name variant
+    "City Core Commercial": {
+        color: "#E69CE1",
+        label: "City Core Commercial",
+        allows_house: false,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Central business district with high-rise commercial development"
+    },
+    // Numbered variants (as they appear in GeoJSON)
+    "C-1": {
+        color: "#C53D3F",
+        label: "General Commercial C-I",
+        allows_house: true,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Primary commercial zone with mixed-use development"
+    },
+    "C-2": {
+        color: "#B42F2F",
+        label: "General Commercial C-II",
+        allows_house: true,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Secondary commercial zone with residential integration"
+    },
+    "C-3": {
+        color: "#8F1D23",
+        label: "General Commercial C-III",
+        allows_house: true,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Tertiary commercial zone"
+    },
 
-  "C-I":  { label: "General Commercial C-I",              color: "#C53D3F" },
-  "C-II": { label: "General Commercial C-II",             color: "#B42F2F" },
-  "C-III":{ label: "General Commercial C-III",            color: "#8F1D23" },
+    // Industrial Zones
+    "I-II": {
+        color: "#D40FA6",
+        label: "General Industrial I-II",
+        allows_house: false,
+        allows_mall: true,
+        allows_factory: true,
+        notes: "Medium industrial zone with commercial allowances"
+    },
+    "I-III": {
+        color: "#980A6D",
+        label: "General Industrial I-III",
+        allows_house: false,
+        allows_mall: true,
+        allows_factory: true,
+        notes: "Light industrial zone with commercial integration"
+    },
+    // Numbered variants (as they appear in GeoJSON)
+    "I-2": {
+        color: "#D40FA6",
+        label: "General Industrial I-II",
+        allows_house: false,
+        allows_mall: true,
+        allows_factory: true,
+        notes: "Medium industrial zone with commercial allowances"
+    },
+    "I-3": {
+        color: "#980A6D",
+        label: "General Industrial I-III",
+        allows_house: false,
+        allows_mall: true,
+        allows_factory: true,
+        notes: "Light industrial zone with commercial integration"
+    },
 
-  "I-II": { label: "General Industrial I-II",             color: "#D40FA6" },
-  "I-III":{ label: "General Industrial I-III",            color: "#980A6D" },
+    // Residential Zones
+    "LDR": {
+        color: "#C4D61F",
+        label: "Light Density Residential",
+        allows_house: true,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Low-density residential areas with single-family housing"
+    },
+    "Light Density Residential": {
+        color: "#C4D61F",
+        label: "Light Density Residential",
+        allows_house: true,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Low-density residential areas with single-family housing"
+    },
+    "MDR": {
+        color: "#BBAD43",
+        label: "Medium Density Residential",
+        allows_house: true,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Medium-density residential with townhouses and low-rise apartments"
+    },
+    "Medium Density Residential": {
+        color: "#BBAD43",
+        label: "Medium Density Residential",
+        allows_house: true,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Medium-density residential with townhouses and low-rise apartments"
+    },
+    "HDR": {
+        color: "#C6983B",
+        label: "High Density Residential",
+        allows_house: true,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "High-density residential with multi-family housing and condominiums"
+    },
+    "High Density Residential": {
+        color: "#C6983B",
+        label: "High Density Residential",
+        allows_house: true,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "High-density residential with multi-family housing and condominiums"
+    },
+    "SH": {
+        color: "#90633A",
+        label: "Socialized Housing",
+        allows_house: true,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Affordable housing zones for low-income families"
+    },
+    "Socialized Housing": {
+        color: "#90633A",
+        label: "Socialized Housing",
+        allows_house: true,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Affordable housing zones for low-income families"
+    },
+    // Typo variant in GeoJSON
+    "Socialize Housing": {
+        color: "#90633A",
+        label: "Socialized Housing",
+        allows_house: true,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Affordable housing zones for low-income families"
+    },
 
-  HDR:    { label: "High Density Residential",            color: "#C6983B" },
-  LDR:    { label: "Light Density Residential",           color: "#C4D61F" },
-  MDR:    { label: "Medium Density Residential",          color: "#BBAD43" },
-  SH:     { label: "Socialized Housing",                  color: "#90633A" },
+    // Environmental & Open Space Zones
+    "Parks and Open Spaces": {
+        color: "#88A331",
+        label: "Parks and Open Spaces",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Public parks, recreation areas, and open spaces"
+    },
+    "POS": {
+        color: "#88A331",
+        label: "Parks and Open Spaces",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Public parks, recreation areas, and open spaces"
+    },
+    "Cemeteries": {
+        color: "#A8D52F",
+        label: "Cemeteries",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Cemetery and memorial park zones"
+    },
+    "CEM": {
+        color: "#A8D52F",
+        label: "Cemeteries",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Cemetery and memorial park zones"
+    },
+    "Mangrove Areas": {
+        color: "#256623",
+        label: "Mangrove Areas",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Protected mangrove forest areas"
+    },
+    "MANG": {
+        color: "#256623",
+        label: "Mangrove Areas",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Protected mangrove forest areas"
+    },
+    "50 Meter Green Corridor (Butuanon River)": {
+        color: "#10850F",
+        label: "50m Green Corridor (Butuanon River)",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Protected green corridor along Butuanon River"
+    },
+    "GC50": {
+        color: "#10850F",
+        label: "50m Green Corridor (Butuanon River)",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Protected green corridor along Butuanon River"
+    },
+    "Aquaculture": {
+        color: "#31969C",
+        label: "Aquaculture",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Aquaculture and fishpond zones"
+    },
 
-  PEZA:   { label: "PEZA",                                 color: "#6B7280" },
-  PUD:    { label: "PUD",                                  color: "#4B5563" },
-  RTD:    { label: "Recreation and Tourism Devt",         color: "#9CA3AF" },
-  UTIL:   { label: "Utilities",                           color: "#111111" }
+    // Institutional Zones
+    "Government (Institutional)": {
+        color: "#1418BC",
+        label: "Government (Institutional)",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Government buildings and institutional facilities"
+    },
+    "GOV": {
+        color: "#1418BC",
+        label: "Government (Institutional)",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Government buildings and institutional facilities"
+    },
+    "Historical Strip": {
+        color: "#7745A8",
+        label: "Historical Strip",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Protected historical and cultural heritage zones"
+    },
+    "HIST": {
+        color: "#7745A8",
+        label: "Historical Strip",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Protected historical and cultural heritage zones"
+    },
+
+    // Special Economic Zones
+    "PEZA": {
+        color: "#6B7280",
+        label: "PEZA",
+        allows_house: false,
+        allows_mall: true,
+        allows_factory: true,
+        notes: "Philippine Economic Zone Authority special economic zone"
+    },
+    "PUD": {
+        color: "#4B5563",
+        label: "PUD",
+        allows_house: true,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Planned Unit Development with mixed uses"
+    },
+    "RTD": {
+        color: "#9CA3AF",
+        label: "Recreation and Tourism Development",
+        allows_house: false,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Tourism and recreation development zones"
+    },
+    "Recreation and Tourism Devt": {
+        color: "#9CA3AF",
+        label: "Recreation and Tourism Development",
+        allows_house: false,
+        allows_mall: true,
+        allows_factory: false,
+        notes: "Tourism and recreation development zones"
+    },
+    "UTIL": {
+        color: "#111111",
+        label: "Utilities",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Utility infrastructure and service facilities"
+    },
+    "Utilities": {
+        color: "#111111",
+        label: "Utilities",
+        allows_house: false,
+        allows_mall: false,
+        allows_factory: false,
+        notes: "Utility infrastructure and service facilities"
+    }
 };
 
-/**
- * Color transformation utility: apply translucency while preserving saturation
- * Converts hex colors to rgba with full saturation and opacity control
- *
- * @param {string} hex - Hex color code (e.g., "#C53D3F")
- * @param {number} alpha - Opacity for map layer (0.6 = 60% opaque, 1.0 = fully opaque)
- * @returns {string} rgba() color string suitable for Mapbox fillColor
- */
-function hexToRgbaTranslucent(hex, alpha = 0.6) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+// Function to enhance GeoJSON features with official zone properties
+function enhanceFeatureV2(feature) {
+    const zoneCode = feature.properties.Zone_code;
+    const zoneData = OFFICIAL_ZONE_COLORS[zoneCode];
+
+    if (!zoneData) {
+        console.warn(`⚠️ Unknown zone code: "${zoneCode}" - using fallback gray color`);
+        return {
+            type: "Feature",
+            properties: {
+                Zone_code: zoneCode,
+                name: `${zoneCode} Zone`,
+                zone: zoneCode || "Unknown",
+                color: "#888888",
+                allows_house: false,
+                allows_mall: false,
+                allows_factory: false,
+                notes: "Zone information not available in official mapping",
+                floodRisk: "unknown"
+            },
+            geometry: feature.geometry
+        };
+    }
+
+    return {
+        type: "Feature",
+        properties: {
+            Zone_code: zoneCode,
+            name: `${zoneData.label}`,
+            zone: zoneData.label,
+            color: zoneData.color,
+            allows_house: zoneData.allows_house,
+            allows_mall: zoneData.allows_mall,
+            allows_factory: zoneData.allows_factory,
+            notes: zoneData.notes,
+            floodRisk: "moderate" // Default, can be enhanced with actual flood data
+        },
+        geometry: feature.geometry
+    };
 }
 
-/**
- * Derived zoning colors for map rendering
- * Fully opaque (100%) with full saturation
- * to official Mandaue City zoning palette
- */
-const MAP_ZONE_COLORS = Object.fromEntries(
-  Object.entries(ZONE_STYLES).map(([key, zone]) => [
-    key,
-    {
-      label: zone.label,
-      originalColor: zone.color,
-      mapColor: hexToRgbaTranslucent(zone.color, 1.0)
-    }
-  ])
-);
-
-// - Jericho: Expanded and corrected zoning data with more realistic boundaries
-// Added Mixed-Use zone and adjusted polygon coordinates for better accuracy
-const zoningData = {
+// Load real GeoJSON data from Mandaue Map V2
+let zoningData = {
     type: "FeatureCollection",
-    features: [
-        {
-            type: "Feature",
-            properties: {
-                name: "Cabancalan–Canduman Residential District",
-                zone: "Residential (R-1)",
-                color: "#C4D61F",
-                allows_house: true,
-                allows_mall: false,
-                allows_factory: false,
-                notes: "Primary residential area with predominantly low-rise housing and community facilities.",
-                floodRisk: "moderate",
-                population: "~15,000 residents"
-            },
-            geometry: {
-                type: "Polygon",
-                coordinates: [[
-                    [123.918, 10.360],
-                    [123.932, 10.365],
-                    [123.940, 10.362],
-                    [123.946, 10.355],
-                    [123.943, 10.345],
-                    [123.935, 10.341],
-                    [123.925, 10.344],
-                    [123.917, 10.352],
-                    [123.918, 10.360]
-                ]]
-            }
-        },
-        {
-            type: "Feature",
-            properties: {
-                name: "A.S. Fortuna Commercial Corridor",
-                zone: "Commercial (C-2)",
-                color: "#31969C",
-                allows_house: true,
-                allows_mall: true,
-                allows_factory: false,
-                notes: "Major commercial thoroughfare with retail shops, restaurants, and business offices. High traffic area.",
-                floodRisk: "high",
-                businesses: "250+ establishments"
-            },
-            geometry: {
-                type: "Polygon",
-                coordinates: [[
-                    [123.913, 10.348],
-                    [123.930, 10.351],
-                    [123.937, 10.346],
-                    [123.932, 10.335],
-                    [123.923, 10.331],
-                    [123.911, 10.334],
-                    [123.909, 10.342],
-                    [123.913, 10.348]
-                ]]
-            }
-        },
-        {
-            type: "Feature",
-            properties: {
-                name: "Subangdaku–Tingub Industrial Zone",
-                zone: "Industrial (I-2)",
-                color: "#D40FA6",
-                allows_house: false,
-                allows_mall: true,
-                allows_factory: true,
-                notes: "Central industrial belt housing manufacturing facilities, warehouses, and logistics centers. Critical flood risk area.",
-                floodRisk: "high",
-                facilities: "120+ industrial units"
-            },
-            geometry: {
-                type: "Polygon",
-                coordinates: [[
-                    [123.916, 10.330],
-                    [123.935, 10.333],
-                    [123.941, 10.326],
-                    [123.938, 10.315],
-                    [123.932, 10.309],
-                    [123.921, 10.307],
-                    [123.911, 10.311],
-                    [123.909, 10.320],
-                    [123.914, 10.328],
-                    [123.916, 10.330]
-                ]]
-            }
-        },
-        {
-            type: "Feature",
-            properties: {
-                name: "Banilad Mixed-Use Development",
-                zone: "Mixed-Use (MU-1)",
-                color: "#88A331",
-                allows_house: true,
-                allows_mall: true,
-                allows_factory: false,
-                notes: "Dynamic mixed-use area combining residential, commercial, and institutional uses. Growing business district.",
-                floodRisk: "moderate",
-                density: "Medium-high density"
-            },
-            geometry: {
-                type: "Polygon",
-                coordinates: [[
-                    [123.925, 10.355],
-                    [123.937, 10.358],
-                    [123.943, 10.352],
-                    [123.940, 10.345],
-                    [123.933, 10.342],
-                    [123.926, 10.346],
-                    [123.925, 10.355]
-                ]]
-            }
-        },
-        {
-            type: "Feature",
-            properties: {
-                name: "Paknaan–Umapad Residential",
-                zone: "Residential (R-1)",
-                color: "#C4D61F",
-                allows_house: true,
-                allows_mall: false,
-                allows_factory: false,
-                notes: "Densely populated residential barangays near Butuanon River. Frequent evacuation area during typhoons.",
-                floodRisk: "critical",
-                population: "~20,000 residents"
-            },
-            geometry: {
-                type: "Polygon",
-                coordinates: [[
-                    [123.935, 10.305],
-                    [123.945, 10.310],
-                    [123.948, 10.305],
-                    [123.945, 10.298],
-                    [123.938, 10.295],
-                    [123.932, 10.298],
-                    [123.933, 10.303],
-                    [123.935, 10.305]
-                ]]
-            }
-        },
-        {
-            type: "Feature",
-            properties: {
-                name: "Maguikay–Tabok Commercial Strip",
-                zone: "Commercial (C-2)",
-                color: "#31969C",
-                allows_house: true,
-                allows_mall: true,
-                allows_factory: false,
-                notes: "Growing commercial area with retail and service businesses. Near major transport routes.",
-                floodRisk: "high",
-                businesses: "180+ establishments"
-            },
-            geometry: {
-                type: "Polygon",
-                coordinates: [[
-                    [123.939, 10.332],
-                    [123.948, 10.336],
-                    [123.951, 10.330],
-                    [123.947, 10.323],
-                    [123.940, 10.320],
-                    [123.936, 10.325],
-                    [123.939, 10.332]
-                ]]
-            }
-        }
-    ]
+    features: []
 };
+
+// Async function to load and enhance the Mandaue Map V2 GeoJSON
+async function loadMandaueZonesV2() {
+    try {
+        console.log('🗺️  Loading Mandaue_Map_V2.geojson...');
+        const response = await fetch('./Mandaue_Map_V2.geojson');
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const geojson = await response.json();
+        console.log(`📊 GeoJSON loaded successfully, raw features: ${geojson.features.length}`);
+
+        // Enhance each feature with official zone properties
+        zoningData = {
+            type: "FeatureCollection",
+            name: "Mandaue_Map_V2",
+            crs: geojson.crs,
+            features: geojson.features.map(enhanceFeatureV2)
+        };
+
+        // Log zone statistics
+        const zoneCounts = {};
+        zoningData.features.forEach(f => {
+            const code = f.properties.Zone_code;
+            zoneCounts[code] = (zoneCounts[code] || 0) + 1;
+        });
+
+        console.log(`✅ Loaded ${zoningData.features.length} zones from Mandaue_Map_V2.geojson`);
+        console.log('📋 Zone distribution:', zoneCounts);
+
+        return zoningData;
+    } catch (error) {
+        console.error('❌ Error loading Mandaue zones:', error);
+        console.error('Error details:', error.message);
+        console.warn('⚠️  Map will continue with empty zones. Check that Mandaue_Map_V2.geojson is in the same directory as Index.html');
+        return zoningData;
+    }
+}
 
 
 // - Jericho: Enhanced flood risk zones with more detailed documentation
@@ -417,7 +612,7 @@ const floodRiskZones = {
     ]
 };
 
-let currentData = JSON.parse(JSON.stringify(zoningData));
+// currentData removed - now using zoningData directly after async V2 loading
 
 function computeBoundsFromGeoJSON(fc) {
     const bounds = new mapboxgl.LngLatBounds();
@@ -455,7 +650,9 @@ let layersLoaded = {
     contours: false
 };
 
-map.on('load', () => {
+map.on('load', async () => {
+    console.log('🗺️  Map loaded, initializing sources and layers...');
+
     // - Jericho: Initialize all map sources first to prevent undefined source errors
     // DEM source for terrain
     map.addSource('mapbox-dem', {
@@ -471,12 +668,18 @@ map.on('load', () => {
         type: 'geojson',
         data: floodRiskZones
     });
+    console.log('✅ Flood risk source added');
 
-    // - Jericho: Add zoning source
+    // Load real Mandaue Map V2 GeoJSON data
+    await loadMandaueZonesV2();
+    console.log(`✅ Zone data loaded, features count: ${zoningData.features.length}`);
+
+    // - Jericho: Add zoning source with loaded V2 data
     map.addSource('zones', {
         type: 'geojson',
-        data: currentData
+        data: zoningData
     });
+    console.log('✅ Zones source added to map');
 
     // - Jericho: Create all layers in proper z-order (bottom to top)
     // This prevents layering issues when multiple features are enabled
@@ -592,7 +795,7 @@ map.on('load', () => {
         id: 'zones-fill',
         type: 'fill',
         source: 'zones',
-        layout: { visibility: 'none' },
+        layout: { visibility: 'visible' },
         paint: {
             'fill-color': ['get', 'color'],
             'fill-opacity': [
@@ -608,7 +811,7 @@ map.on('load', () => {
         id: 'zones-outline',
         type: 'line',
         source: 'zones',
-        layout: { visibility: 'none' },
+        layout: { visibility: 'visible' },
         paint: {
             'line-color': [
                 'case',
@@ -733,7 +936,7 @@ map.on('load', () => {
 
     // - Jericho: Cursor interaction and hover state for zones
     let hoveredZoneId = null;
-    
+
     map.on('mouseenter', 'zones-fill', (e) => {
         map.getCanvas().style.cursor = 'pointer';
         if (e.features.length > 0) {
@@ -750,7 +953,7 @@ map.on('load', () => {
             );
         }
     });
-    
+
     map.on('mouseleave', 'zones-fill', () => {
         map.getCanvas().style.cursor = '';
         if (hoveredZoneId !== null) {
@@ -1022,7 +1225,7 @@ function applyCurrentFilter() {
         map.setFilter('zones-outline', null);
         map.setLayoutProperty('zones-fill', 'visibility', 'visible');
         map.setLayoutProperty('zones-outline', 'visibility', 'visible');
-        map.fitBounds(computeBoundsFromGeoJSON(currentData), { padding: 80, duration: 450 });
+        map.fitBounds(computeBoundsFromGeoJSON(zoningData), { padding: 80, duration: 450 });
         return;
     }
 
@@ -1046,7 +1249,7 @@ function applyCurrentFilter() {
     // Zoom to filtered zones
     const filtered = {
         type: "FeatureCollection",
-        features: currentData.features.filter(
+        features: zoningData.features.filter(
             f => f.properties && f.properties[key] === true
         )
     };
