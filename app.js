@@ -391,14 +391,11 @@ let zoningData = {
 // Async function to load and enhance the Mandaue Map V2 GeoJSON
 async function loadMandaueZonesV2() {
     try {
-        console.log('🗺️  Loading Mandaue_Map_V2.geojson...');
-        const response = await fetch('./Mandaue_Map_V2.geojson');
+        console.log('🗺️  Loading embedded Mandaue GeoJSON data...');
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // Use the embedded data instead of fetch
+        const geojson = MANDAUE_GEOJSON_DATA;
 
-        const geojson = await response.json();
         console.log(`📊 GeoJSON loaded successfully, raw features: ${geojson.features.length}`);
 
         // Enhance each feature with official zone properties
@@ -416,14 +413,14 @@ async function loadMandaueZonesV2() {
             zoneCounts[code] = (zoneCounts[code] || 0) + 1;
         });
 
-        console.log(`✅ Loaded ${zoningData.features.length} zones from Mandaue_Map_V2.geojson`);
+        console.log(`✅ Loaded ${zoningData.features.length} zones from embedded data`);
         console.log('📋 Zone distribution:', zoneCounts);
 
         return zoningData;
     } catch (error) {
         console.error('❌ Error loading Mandaue zones:', error);
         console.error('Error details:', error.message);
-        console.warn('⚠️  Map will continue with empty zones. Check that Mandaue_Map_V2.geojson is in the same directory as Index.html');
+        console.warn('⚠️  Map will continue with empty zones. Check that mandaue-data.js is loaded before app.js');
         return zoningData;
     }
 }
