@@ -280,10 +280,10 @@ body {
    RIGHT SIDEBAR CONTAINER - Core Layout
    ============================================ */
 .right-sidebar {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    bottom: 1rem;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    bottom: 20px;
     width: 280px;
     display: flex;
     flex-direction: column;
@@ -663,7 +663,7 @@ body {
 /* Chatbot - BelaBot Icon */
 .chatbot-button {
     position: fixed;
-    bottom: 20px;
+    bottom: 80px;
     left: 20px;
     width: 70px;
     height: 70px;
@@ -1041,6 +1041,7 @@ body {
     font-size: 10px;
     color: #94a3b8;
     z-index: 5;
+    display: none;
 }
 
 .data-timestamp {
