@@ -161,6 +161,20 @@ body {
     border-top-color: #f472b6;
 }
 
+/* Tooltip positioning for right sidebar panels - show on left to avoid clipping */
+.right-sidebar .tooltip-icon::after {
+    left: auto;
+    right: calc(100% + 12px);
+}
+
+.right-sidebar .tooltip-icon::before {
+    left: auto;
+    right: calc(100% + 6px);
+    border-right-color: transparent;
+    border-left-color: #f472b6;
+}
+
+
 /* Make headings position relative to contain tooltips */
 .controls h3,
 .legend h4,

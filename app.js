@@ -1209,7 +1209,7 @@ function setFilter(type, btn) {
 }
 
 function applyCurrentFilter() {
-    if (currentFilterType === null) {
+    if (currentFilterType === null || currentFilterType === 'none') {
         // Hide all zones when nothing is selected
         map.setLayoutProperty('zones-fill', 'visibility', 'none');
         map.setLayoutProperty('zones-outline', 'visibility', 'none');
